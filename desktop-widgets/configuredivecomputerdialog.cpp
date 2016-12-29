@@ -227,7 +227,7 @@ OstcFirmwareCheck::OstcFirmwareCheck(QString product) : parent(0)
 {
 	QUrl url;
 	memset(&devData, 1, sizeof(devData));
-	if (product == "OSTC 3") {
+	if (product == "OSTC 3" || product == "OSTC 3+" || product == "OSTC Cr") {
 		url = QUrl("http://www.heinrichsweikamp.net/autofirmware/ostc3_changelog.txt");
 		latestFirmwareHexFile = QString("http://www.heinrichsweikamp.net/autofirmware/ostc3_firmware.hex");
 	} else if (product == "OSTC Sport") {
@@ -258,8 +258,11 @@ void OstcFirmwareCheck::checkLatest(QWidget *_parent, device_data_t *data)
 	if (latestFirmwareAvailable.isEmpty())
 		return;
 
-	// for now libdivecomputer gives us the firmware on device undecoded as integer
+	// libdivecomputer gives us the firmware on device as an integer
 	// for the OSTC that means highbyte.lowbyte is the version number
+	// For OSTC 4's there is actually a another minor, x.y.Z, but its not
+	// exposed via libdivecomputer, so we won't trigger this update flow
+	// when the Z changes
 	int firmwareOnDevice = devData.libdc_firmware;
 	QString firmwareOnDeviceString = QString("%1.%2").arg(firmwareOnDevice / 256).arg(firmwareOnDevice % 256);
 
@@ -271,8 +274,7 @@ void OstcFirmwareCheck::checkLatest(QWidget *_parent, device_data_t *data)
 		QString message = tr("You should update the firmware on your dive computer: you have version %1 but the latest stable version is %2")
 					  .arg(firmwareOnDeviceString)
 					  .arg(latestFirmwareAvailable);
-		if (strcmp(data->product, "OSTC Sport") == 0)
-			message += tr("\n\nPlease start Bluetooth on your OSTC Sport and do the same preparations as for a logbook download before continuing with the update");
+		message += tr("\n\nIf your device uses Bluetooth, do the same preparations as for a logbook download before continuing with the update");
 		response.addButton(tr("Not now"), QMessageBox::RejectRole);
 		response.addButton(tr("Update firmware"), QMessageBox::AcceptRole);
 		response.setText(message);

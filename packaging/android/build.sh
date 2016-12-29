@@ -27,7 +27,7 @@ else
 fi
 
 # Configure where we can find things here
-export ANDROID_NDK_ROOT=${ANDROID_NDK_ROOT-$SUBSURFACE_SOURCE/../android-ndk-r12}
+export ANDROID_NDK_ROOT=${ANDROID_NDK_ROOT-$SUBSURFACE_SOURCE/../android-ndk-r13b}
 
 if [ ! -z "$QT5_ANDROID" ] ; then
 	echo "Using Qt5 in $QT5_ANDROID"
@@ -351,9 +351,10 @@ if [ ! -z "$SUBSURFACE_MOBILE" ] ; then
 else
 	SUBSURFACE_VERSION=$(grep CANONICAL_VERSION_STRING ssrf-version.h | awk '{ print $3 }' | tr -d \")
 
-	rm -rf android
-	cp -a $SUBSURFACE_SOURCE/android .
-	sed -i -e "s/@SUBSURFACE_VERSION@/\"$SUBSURFACE_VERSION\"/;s/@BUILD_NR@/$BUILD_NR/" android/AndroidManifest.xml
+	# android-mobile is hardcoded in CMakeLists.txt nowadays.
+	rm -rf android-mobile
+	cp -a $SUBSURFACE_SOURCE/android android-mobile
+	sed -i -e "s/@SUBSURFACE_VERSION@/\"$SUBSURFACE_VERSION\"/;s/@BUILD_NR@/$BUILD_NR/" android-mobile/AndroidManifest.xml
 fi
 
 # now make the translations
