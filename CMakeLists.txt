@@ -33,6 +33,7 @@ option(NO_USERMANUAL "don't include a viewer for the user manual" OFF)
 option(FBSUPPORT "allow posting to Facebook" ON)
 option(BTSUPPORT "enable support for QtBluetooth (requires Qt5.4 or newer)" ON)
 option(FTDISUPPORT "enable support for libftdi based serial" OFF)
+option(USE_WEBENGINE "Use QWebEngine instead of QWebKit" OFF)
 
 # Options regarding What should we build on subsurface
 option(MAKE_TESTS "Make the tests" ON)
@@ -68,7 +69,14 @@ set(CMAKE_MODULE_PATH
 #
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
 	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu99 ")
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+	if((${CMAKE_SYSTEM_NAME} MATCHES "Darwin") AND
+	   ((${CMAKE_SYSTEM_VERSION} MATCHES "11.4.") OR
+	    (${CMAKE_OSX_DEPLOYMENT_TARGET} MATCHES "10.7") OR
+	    (${CMAKE_OSX_DEPLOYMENT_TARGET} MATCHES "10.8")))
+		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -stdlib=libc++")
+	else()
+		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+	endif()
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "AppleClang")
 	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu99 ")
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
@@ -286,6 +294,7 @@ elseif(${SUBSURFACE_TARGET_EXECUTABLE} MATCHES "DesktopExecutable")
 	add_dependencies(subsurface_statistics subsurface_generated_ui)
 	add_dependencies(subsurface_interface subsurface_generated_ui)
 	add_dependencies(subsurface_profile subsurface_generated_ui)
+	add_dependencies(subsurface_models subsurface_generated_ui)
 	add_dependencies(subsurface_generated_ui version)
 endif()
 

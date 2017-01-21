@@ -183,6 +183,9 @@ slots:
 
 	void socialNetworkRequestConnect();
 	void socialNetworkRequestUpload();
+	void facebookLoggedIn();
+	void facebookLoggedOut();
+
 private:
 	Ui::MainWindow ui;
 	QAction *actionNextDive;
@@ -241,6 +244,7 @@ private:
 
 	WindowTitleUpdate *wtu;
 	GpsLocation *locationProvider;
+	QMenu *connections;
 };
 
 #endif // MAINWINDOW_H

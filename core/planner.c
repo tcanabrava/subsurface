@@ -14,6 +14,7 @@
 #include "planner.h"
 #include "gettext.h"
 #include "libdivecomputer/parser.h"
+#include "qthelperfromc.h"
 
 #define TIMESTEP 2 /* second */
 #define DECOTIMESTEP 60 /* seconds. Unit of deco stop times */
@@ -128,7 +129,7 @@ void interpolate_transition(struct dive *dive, duration_t t0, duration_t t1, dep
 }
 
 /* returns the tissue tolerance at the end of this (partial) dive */
-bool tissue_at_end(struct dive *dive, char **cached_datap)
+unsigned int tissue_at_end(struct dive *dive, char **cached_datap)
 {
 	struct divecomputer *dc;
 	struct sample *sample, *psample;
@@ -136,19 +137,19 @@ bool tissue_at_end(struct dive *dive, char **cached_datap)
 	depth_t lastdepth = {};
 	duration_t t0 = {}, t1 = {};
 	struct gasmix gas;
-	bool repetitive = false;
+	unsigned int surface_interval = 0;
 
 	if (!dive)
-		return false;
+		return 0;
 	if (*cached_datap) {
 		restore_deco_state(*cached_datap);
 	} else {
-		repetitive = init_decompression(dive);
+		surface_interval = init_decompression(dive);
 		cache_deco_state(cached_datap);
 	}
 	dc = &dive->dc;
 	if (!dc->samples)
-		return false;
+		return 0;
 	psample = sample = dc->sample;
 
 	for (i = 0; i < dc->samples; i++, sample++) {
@@ -173,7 +174,7 @@ bool tissue_at_end(struct dive *dive, char **cached_datap)
 		 * portion of the dive.
 		 * Remember the value for later.
 		 */
-		if ((prefs.deco_mode == VPMB) && (lastdepth.mm > sample->depth.mm)) {
+		if ((decoMode() == VPMB) && (lastdepth.mm > sample->depth.mm)) {
 			pressure_t ceiling_pressure;
 			nuclear_regeneration(t0.seconds);
 			vpmb_start_gradient();
@@ -191,7 +192,7 @@ bool tissue_at_end(struct dive *dive, char **cached_datap)
 		psample = sample;
 		t0 = t1;
 	}
-	return repetitive;
+	return surface_interval;
 }
 
 
@@ -548,7 +549,7 @@ static void add_plan_to_notes(struct diveplan *diveplan, struct dive *dive, bool
 	plan_display_duration = prefs.display_duration;
 	plan_display_transitions = prefs.display_transitions;
 
-	if (prefs.deco_mode == VPMB) {
+	if (decoMode() == VPMB) {
 		deco = "VPM-B";
 	} else {
 		deco = "BUHLMANN";
@@ -579,10 +580,10 @@ static void add_plan_to_notes(struct diveplan *diveplan, struct dive *dive, bool
 	}
 
 	len = show_disclaimer ? snprintf(buffer, sz_buffer, "<div><b>%s<b></div><br>", disclaimer) : 0;
-	if (prefs.deco_mode == BUEHLMANN){
+	if (decoMode() == BUEHLMANN){
 		snprintf(temp, sz_temp, translate("gettextFromC", "based on Bühlmann ZHL-16C with GFlow = %d and GFhigh = %d"),
 			diveplan->gflow, diveplan->gfhigh);
-	} else if (prefs.deco_mode == VPMB){
+	} else if (decoMode() == VPMB){
 		int temp_len;
 		if (diveplan->vpmb_conservatism == 0)
 			temp_len = snprintf(temp, sz_temp, "%s", translate("gettextFromC", "based on VPM-B at nominal conservatism"));
@@ -592,14 +593,20 @@ static void add_plan_to_notes(struct diveplan *diveplan, struct dive *dive, bool
 			temp_len += snprintf(temp + temp_len, sz_temp - temp_len,  translate("gettextFromC", ", effective GF=%d/%d"), diveplan->eff_gflow
 					     , diveplan->eff_gfhigh);
 
-	} else if (prefs.deco_mode == RECREATIONAL){
+	} else if (decoMode() == RECREATIONAL){
 		snprintf(temp, sz_temp, translate("gettextFromC", "recreational mode based on Bühlmann ZHL-16B with GFlow = %d and GFhigh = %d"),
 			diveplan->gflow, diveplan->gfhigh);
 	}
-	len += snprintf(buffer + len, sz_buffer - len, "<div><b>%s%s</b><br>%s</div>",
-			translate("gettextFromC", "Subsurface dive plan"),
-			diveplan->repetitive ? translate("gettextFromC", " (repetitive)") : "",
-			temp);
+	if (diveplan->surface_interval > 60) {
+		len += snprintf(buffer + len, sz_buffer - len, "<div><b>%s %d:%02d)</b><br>%s</div>",
+				translate("gettextFromC", "Subsurface dive plan (surface interval "),
+				FRACTION(diveplan->surface_interval / 60, 60),
+				temp);
+	} else {
+		len += snprintf(buffer + len, sz_buffer - len, "<div><b>%s</b><br>%s</div>",
+				translate("gettextFromC", "Subsurface dive plan"),
+				temp);
+	}
 	len += snprintf(buffer + len, sz_buffer - len, translate("gettextFromC", "<div>Runtime: %dmin</div><br>"),
 			diveplan_duration(diveplan));
 
@@ -932,7 +939,7 @@ bool trial_ascent(int trial_depth, int stoplevel, int avg_depth, int bottom_time
 	// For consistency with other VPM-B implementations, we should not start the ascent while the ceiling is
 	// deeper than the next stop (thus the offgasing during the ascent is ignored).
 	// However, we still need to make sure we don't break the ceiling due to on-gassing during ascent.
-	if (prefs.deco_mode == VPMB && (deco_allowed_depth(tissue_tolerance_calc(&displayed_dive,
+	if (decoMode() == VPMB && (deco_allowed_depth(tissue_tolerance_calc(&displayed_dive,
 										 depth_to_bar(stoplevel, &displayed_dive)),
 							   surface_pressure, &displayed_dive, 1) > stoplevel))
 		return false;
@@ -1086,11 +1093,11 @@ bool plan(struct diveplan *diveplan, char **cached_datap, bool is_planner, bool 
 	gi = gaschangenr - 1;
 
 	/* Set tissue tolerance and initial vpmb gradient at start of ascent phase */
-	diveplan->repetitive = tissue_at_end(&displayed_dive, cached_datap);
+	diveplan->surface_interval = tissue_at_end(&displayed_dive, cached_datap);
 	nuclear_regeneration(clock);
 	vpmb_start_gradient();
 
-	if(prefs.deco_mode == RECREATIONAL) {
+	if(decoMode() == RECREATIONAL) {
 		bool safety_stop = prefs.safetystop && max_depth >= 10000;
 		track_ascent_gas(depth, &displayed_dive.cylinder[current_cylinder], avg_depth, bottom_time, safety_stop);
 		// How long can we stay at the current depth and still directly ascent to the surface?
@@ -1166,7 +1173,7 @@ bool plan(struct diveplan *diveplan, char **cached_datap, bool is_planner, bool 
 
 	//CVA
 	do {
-		is_final_plan = (prefs.deco_mode == BUEHLMANN) || (previous_deco_time - deco_time < 10);  // CVA time converges
+		is_final_plan = (decoMode() == BUEHLMANN) || (previous_deco_time - deco_time < 10);  // CVA time converges
 		if (deco_time != 10000000)
 			vpmb_next_gradient(deco_time, diveplan->surface_pressure / 1000.0);
 
@@ -1366,7 +1373,7 @@ bool plan(struct diveplan *diveplan, char **cached_datap, bool is_planner, bool 
 	} while (!is_final_plan);
 
 	plan_add_segment(diveplan, clock - previous_point_time, 0, current_cylinder, po2, false);
-	if(prefs.deco_mode == VPMB) {
+	if(decoMode() == VPMB) {
 		diveplan->eff_gfhigh = rint(100.0 * regressionb());
 		diveplan->eff_gflow = rint(100*(regressiona() * first_stop_depth + regressionb()));
 	}
