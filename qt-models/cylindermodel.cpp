@@ -38,10 +38,9 @@ static QString get_cylinder_string(cylinder_t *cyl)
 	// liters: if we don't have a working pressure, we cannot
 	// convert the cylinder size to cuft.
 	if (wp.mbar && prefs.units.volume == units::CUFT) {
-		double real_value = ml_to_cuft(gas_volume(cyl, wp));
 		value = ml_to_cuft(ml) * bar_to_atm(wp.mbar / 1000.0);
 		decimals = (value > 20.0) ? 0 : (value > 2.0) ? 1 : 2;
-		unit = QString("(%1)%2").arg(real_value, 0, 'f', 0).arg(CylindersModel::tr("cuft"));
+		unit = CylindersModel::tr("cuft");
 	} else {
 		value = ml / 1000.0;
 		decimals = 1;
@@ -51,6 +50,65 @@ static QString get_cylinder_string(cylinder_t *cyl)
 	return QString("%1").arg(value, 0, 'f', decimals) + unit;
 }
 
+static QString gas_volume_string(int ml, const char *tail)
+{
+	double vol;
+	const char *unit;
+	int decimals;
+
+	vol = get_volume_units(ml, NULL, &unit);
+	decimals = (vol > 20.0) ? 0 : (vol > 2.0) ? 1 : 2;
+
+	return QString("%1 %2 %3").arg(vol, 0, 'f', decimals).arg(unit).arg(tail);
+}
+
+static QVariant gas_wp_tooltip(cylinder_t *cyl);
+
+static QVariant gas_usage_tooltip(cylinder_t *cyl)
+{
+	pressure_t startp = cyl->start.mbar ? cyl->start : cyl->sample_start;
+	pressure_t endp = cyl->end.mbar ? cyl->end : cyl->sample_end;
+
+	int start, end, used;
+
+	start = gas_volume(cyl, startp);
+	end = gas_volume(cyl, endp);
+	used = (end && start > end) ? start - end : 0;
+
+	if (!used)
+		return gas_wp_tooltip(cyl);
+
+	return gas_volume_string(used, "(") +
+		gas_volume_string(start, " -> ") +
+		gas_volume_string(end, ")");
+}
+
+static QVariant gas_volume_tooltip(cylinder_t *cyl, pressure_t p)
+{
+	int vol = gas_volume(cyl, p);
+	double Z;
+
+	if (!vol)
+		return QVariant();
+
+	Z = gas_compressibility_factor(&cyl->gasmix, p.mbar / 1000.0);
+	return gas_volume_string(vol, "(Z=") + QString("%1)").arg(Z, 0, 'f', 3);
+}
+
+static QVariant gas_wp_tooltip(cylinder_t *cyl)
+{
+	return gas_volume_tooltip(cyl, cyl->type.workingpressure);
+}
+
+static QVariant gas_start_tooltip(cylinder_t *cyl)
+{
+	return gas_volume_tooltip(cyl, cyl->start.mbar ? cyl->start : cyl->sample_start);
+}
+
+static QVariant gas_end_tooltip(cylinder_t *cyl)
+{
+	return gas_volume_tooltip(cyl, cyl->end.mbar ? cyl->end : cyl->sample_end);
+}
 
 static QVariant percent_string(fraction_t fraction)
 {
@@ -176,6 +234,15 @@ QVariant CylindersModel::data(const QModelIndex &index, int role) const
 		case REMOVE:
 			ret = tr("Clicking here will remove this cylinder.");
 			break;
+		case TYPE:
+		case SIZE:
+			return gas_usage_tooltip(cyl);
+		case WORKINGPRESS:
+			return gas_wp_tooltip(cyl);
+		case START:
+			return gas_start_tooltip(cyl);
+		case END:
+			return gas_end_tooltip(cyl);
 		case DEPTH:
 			ret = tr("Switch depth for deco gas. Calculated using Deco pO₂ preference, unless set manually.");
 			break;
@@ -413,7 +480,7 @@ void CylindersModel::copyFromDive(dive *d)
 
 Qt::ItemFlags CylindersModel::flags(const QModelIndex &index) const
 {
-	if (index.column() == REMOVE)
+	if (index.column() == REMOVE || index.column() == USE)
 		return Qt::ItemIsEnabled;
 	return QAbstractItemModel::flags(index) | Qt::ItemIsEditable;
 }
@@ -421,6 +488,17 @@ Qt::ItemFlags CylindersModel::flags(const QModelIndex &index) const
 void CylindersModel::remove(const QModelIndex &index)
 {
 	int mapping[MAX_CYLINDERS];
+
+	if (index.column() == USE) {
+		cylinder_t *cyl = cylinderAt(index);
+		if (cyl->cylinder_use == OC_GAS)
+			cyl->cylinder_use = NOT_USED;
+		else if (cyl->cylinder_use == NOT_USED)
+			cyl->cylinder_use = OC_GAS;
+		changed = true;
+		dataChanged(index, index);
+		return;
+	}
 	if (index.column() != REMOVE) {
 		return;
 	}

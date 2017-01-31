@@ -1,9 +1,9 @@
-import QtQuick 2.4
+import QtQuick 2.6
 import QtQuick.Controls 1.2
 import QtQuick.Layouts 1.2
 import QtQuick.Window 2.2
 import QtQuick.Dialogs 1.2
-import org.kde.kirigami 2.0 as Kirigami
+import org.kde.kirigami 1.0 as Kirigami
 import org.subsurfacedivelog.mobile 1.0
 
 Kirigami.ScrollablePage {
@@ -244,7 +244,14 @@ Kirigami.ScrollablePage {
 		}
 	}
 
-	Kirigami.Label {
+	Text {
+		// make sure this gets pushed far enough down so that it's not obscured by the page title
+		// it would be nicer to use Kirigami.Label, but due to a QML bug that isn't possible with a
+		// weird "component versioning" error
+		// using this property means that we require Qt 5.6 / QtQuick2.6
+		topPadding: Kirigami.Units.iconSizes.large
+		leftPadding: Kirigami.Units.iconSizes.large
+
 		text: qsTr("No dives in dive list")
 		visible: diveListView.visible && diveListView.count === 0
 	}

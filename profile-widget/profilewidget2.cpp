@@ -488,7 +488,7 @@ void ProfileWidget2::setupItemSizes()
 	itemPos.percentage.expanded.setP1(QPointF(0, 0));
 	itemPos.percentage.expanded.setP2(QPointF(0, 15));
 	itemPos.percentageWithTankBar = itemPos.percentage;
-	itemPos.percentageWithTankBar.expanded.setP2(QPointF(0, 12));
+	itemPos.percentageWithTankBar.expanded.setP2(QPointF(0, 11.9));
 
 	itemPos.dcLabel.on.setX(3);
 	itemPos.dcLabel.on.setY(100);
@@ -496,7 +496,7 @@ void ProfileWidget2::setupItemSizes()
 	itemPos.dcLabel.off.setY(100);
 
 	itemPos.tankBar.on.setX(0);
-	itemPos.tankBar.on.setY(91.5);
+	itemPos.tankBar.on.setY(91.95);
 }
 
 void ProfileWidget2::setupItem(AbstractProfilePolygonItem *item, DiveCartesianAxis *hAxis,
@@ -624,8 +624,9 @@ void ProfileWidget2::plotDive(struct dive *d, bool force)
 	 */
 	plotInfo = calculate_max_limits_new(&displayed_dive, currentdc);
 	create_plot_info_new(&displayed_dive, currentdc, &plotInfo, !shouldCalculateMaxDepth);
-	if (shouldCalculateMaxTime)
-		maxtime = get_maxtime(&plotInfo);
+	int newMaxtime = get_maxtime(&plotInfo);
+	if (shouldCalculateMaxTime || newMaxtime > maxtime)
+		maxtime = newMaxtime;
 
 	/* Only update the max depth if it's bigger than the current ones
 	 * when we are dragging the handler to plan / add dive.
@@ -856,7 +857,7 @@ void ProfileWidget2::mousePressEvent(QMouseEvent *event)
 	if (zoomLevel)
 		return;
 	QGraphicsView::mousePressEvent(event);
-	if (currentState == PLAN)
+	if (currentState == PLAN || currentState == ADD || currentState == EDIT)
 		shouldCalculateMaxTime = false;
 }
 
@@ -881,7 +882,7 @@ void ProfileWidget2::mouseReleaseEvent(QMouseEvent *event)
 	if (zoomLevel)
 		return;
 	QGraphicsView::mouseReleaseEvent(event);
-	if (currentState == PLAN) {
+	if (currentState == PLAN || currentState == ADD || currentState == EDIT) {
 		shouldCalculateMaxTime = true;
 		replot();
 	}

@@ -22,6 +22,7 @@ option(LIBMARBLE_FROM_PKGCONFIG "use pkg-config to retrieve marble" OFF)
 
 #Library Handling
 option(FORCE_LIBSSH "force linking with libssh to workaround libgit2 bug" ON)
+option(LIBGIT2_DYNAMIC "search for libgit2.so before libgit2.a" OFF)
 
 #Options regarding disabling parts of subsurface.
 option(NO_MARBLE "disable the marble widget" OFF)
@@ -238,11 +239,12 @@ if(${SUBSURFACE_TARGET_EXECUTABLE} MATCHES "MobileExecutable")
 		mobile-widgets/qmlprofile.cpp
 		mobile-widgets/qml/kirigami/src/kirigamiplugin.cpp
 		mobile-widgets/qml/kirigami/src/enums.cpp
-		mobile-widgets/qml/kirigami/src/desktopicon.cpp
-		mobile-widgets/qml/kirigami/src/settings.cpp
 		subsurface-mobile-main.cpp
 		subsurface-mobile-helper.cpp
 	)
+	if(NOT ANDROID AND NOT iOS)
+		set(MOBILE_SRC ${MOBILE_SRC} mobile-widgets/qml/kirigami/src/desktopicon.cpp)
+	endif()
 	add_definitions(-DKIRIGAMI_BUILD_TYPE_STATIC)
 	qt5_add_resources(MOBILE_RESOURCES mobile-widgets/qml/mobile-resources.qrc)
 	qt5_add_resources(MOBILE_RESOURCES mobile-widgets/qml/kirigami/kirigami.qrc)

@@ -6,6 +6,7 @@
 #include "qt-models/models.h"
 #include "core/device.h"
 #include "core/subsurface-qt/SettingsObjectWrapper.h"
+#include <QApplication>
 
 /* TODO: Port this to CleanerTableModel to remove a bit of boilerplate and
  * use the signal warningMessage() to communicate errors to the MainWindow.
@@ -72,6 +73,7 @@ void DivePlannerPointsModel::loadFromDive(dive *d)
 	recalc = false;
 	CylindersModel::instance()->updateDive();
 	duration_t lasttime = {};
+	duration_t lastrecordedtime = {};
 	duration_t newtime = {};
 	free_dps(&diveplan);
 	diveplan.when = d->when;
@@ -103,7 +105,10 @@ void DivePlannerPointsModel::loadFromDive(dive *d)
 		}
 		if (samplecount) {
 			int cylinderid = get_cylinderid_at_time(d, dc, lasttime);
-			addStop(depthsum / samplecount, newtime.seconds, cylinderid, 0, true);
+			if (newtime.seconds - lastrecordedtime.seconds > 10) {
+				addStop(depthsum / samplecount, newtime.seconds, cylinderid, 0, true);
+				lastrecordedtime = newtime;
+			}
 			lasttime = newtime;
 			depthsum = 0;
 			samplecount = 0;
@@ -696,16 +701,16 @@ void DivePlannerPointsModel::remove(const QModelIndex &index)
  * remove method that will pass the first and last index of the
  * removed rows, and remove those in a go.
  */
-//	int i;
-//	int rows = rowCount();
-//	if (QApplication::keyboardModifiers() & Qt::ControlModifier) {
-//		beginRemoveRows(QModelIndex(), index.row(), rows - 1);
-//		for (i = rows - 1; i >= index.row(); i--)
-//			divepoints.remove(i);
-//	} else {
+	int i;
+	int rows = rowCount();
+	if (QApplication::keyboardModifiers() & Qt::ControlModifier) {
+		beginRemoveRows(QModelIndex(), index.row(), rows - 1);
+		for (i = rows - 1; i >= index.row(); i--)
+			divepoints.remove(i);
+	} else {
 		beginRemoveRows(QModelIndex(), index.row(), index.row());
 		divepoints.remove(index.row());
-//	}
+	}
 	endRemoveRows();
 }
 
@@ -794,7 +799,7 @@ void DivePlannerPointsModel::createTemporaryPlan()
 	struct divedatapoint *dp = NULL;
 	for (int i = 0; i < MAX_CYLINDERS; i++) {
 		cylinder_t *cyl = &displayed_dive.cylinder[i];
-		if (cyl->depth.mm) {
+		if (cyl->depth.mm && cyl->cylinder_use != NOT_USED) {
 			dp = create_dp(0, cyl->depth.mm, i, 0);
 			if (diveplan.dp) {
 				dp->next = diveplan.dp;

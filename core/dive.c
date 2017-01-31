@@ -30,7 +30,7 @@ static const char *default_tags[] = {
 };
 
 const char *cylinderuse_text[] = {
-	QT_TRANSLATE_NOOP("gettextFromC", "OC-gas"), QT_TRANSLATE_NOOP("gettextFromC", "diluent"), QT_TRANSLATE_NOOP("gettextFromC", "oxygen")
+	QT_TRANSLATE_NOOP("gettextFromC", "OC-gas"), QT_TRANSLATE_NOOP("gettextFromC", "diluent"), QT_TRANSLATE_NOOP("gettextFromC", "oxygen"), QT_TRANSLATE_NOOP("gettextFromC", "not used")
 };
 const char *divemode_text[] = { "OC", "CCR", "PSCR", "Freedive" };
 
@@ -872,7 +872,7 @@ int gas_volume(cylinder_t *cyl, pressure_t p)
 {
 	double bar = p.mbar / 1000.0;
 	double z_factor = gas_compressibility_factor(&cyl->gasmix, bar);
-	return cyl->type.size.mliter * bar_to_atm(bar) / z_factor;
+	return rint(cyl->type.size.mliter * bar_to_atm(bar) / z_factor);
 }
 
 /*

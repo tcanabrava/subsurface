@@ -4,7 +4,7 @@ import QtQuick.Controls.Styles 1.4
 import QtQuick.Dialogs 1.2
 import QtQuick.Layouts 1.2
 import org.subsurfacedivelog.mobile 1.0
-import org.kde.kirigami 2.0 as Kirigami
+import org.kde.kirigami 1.0 as Kirigami
 
 Kirigami.Page {
 	id: diveDetailsPage
@@ -156,8 +156,8 @@ Kirigami.Page {
 		airtemp = diveDetailsListView.currentItem.modelData.dive.airTemp
 		watertemp = diveDetailsListView.currentItem.modelData.dive.waterTemp
 		suitIndex = diveDetailsListView.currentItem.modelData.dive.suitList.indexOf(diveDetailsListView.currentItem.modelData.dive.suit)
-		if (diveDetailsListView.currentItem.modelData.dive.buddy.search(",")) {
-			buddyIndex = diveDetailsListView.currentItem.modelData.dive.buddyList.indexOf("Multiple Buddies");
+		if (diveDetailsListView.currentItem.modelData.dive.buddy.indexOf(",") > 0) {
+			buddyIndex = diveDetailsListView.currentItem.modelData.dive.buddyList.indexOf(qsTr("Multiple Buddies"));
 		} else {
 			buddyIndex = diveDetailsListView.currentItem.modelData.dive.buddyList.indexOf(diveDetailsListView.currentItem.modelData.dive.buddy)
 		}
@@ -218,8 +218,8 @@ Kirigami.Page {
 		}
 		Kirigami.OverlaySheet {
 			id: detailsEditScroll
-			// anchors.fill: parent
-			onSheetOpenChanged: {
+			anchors.fill: parent
+			onOpenedChanged: {
 				if (!opened) {
 					endEditMode()
 				}

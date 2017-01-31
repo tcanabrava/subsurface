@@ -56,7 +56,7 @@ extern "C" {
 extern int last_xml_version;
 
 enum dive_comp_type {OC, CCR, PSCR, FREEDIVE, NUM_DC_TYPE};	// Flags (Open-circuit and Closed-circuit-rebreather) for setting dive computer type
-enum cylinderuse {OC_GAS, DILUENT, OXYGEN, NUM_GAS_USE}; // The different uses for cylinders
+enum cylinderuse {OC_GAS, DILUENT, OXYGEN, NOT_USED, NUM_GAS_USE}; // The different uses for cylinders
 
 extern const char *cylinderuse_text[];
 extern const char *divemode_text[];
@@ -136,6 +136,7 @@ extern int units_to_sac(double volume);
 /* Volume in mliter of a cylinder at pressure 'p' */
 extern int gas_volume(cylinder_t *cyl, pressure_t p);
 extern double gas_compressibility_factor(struct gasmix *gas, double bar);
+extern double isothermal_pressure(struct gasmix *gas, double p1, int volume1, int volume2);
 
 
 static inline int get_o2(const struct gasmix *mix)

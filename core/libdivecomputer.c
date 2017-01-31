@@ -220,12 +220,32 @@ static void handle_event(struct divecomputer *dc, struct sample *sample, dc_samp
 	/* we mark these for translation here, but we store the untranslated strings
 	 * and only translate them when they are displayed on screen */
 	static const char *events[] = {
-		QT_TRANSLATE_NOOP("gettextFromC", "none"), QT_TRANSLATE_NOOP("gettextFromC", "deco stop"), QT_TRANSLATE_NOOP("gettextFromC", "rbt"), QT_TRANSLATE_NOOP("gettextFromC", "ascent"), QT_TRANSLATE_NOOP("gettextFromC", "ceiling"), QT_TRANSLATE_NOOP("gettextFromC", "workload"),
-		QT_TRANSLATE_NOOP("gettextFromC", "transmitter"), QT_TRANSLATE_NOOP("gettextFromC", "violation"), QT_TRANSLATE_NOOP("gettextFromC", "bookmark"), QT_TRANSLATE_NOOP("gettextFromC", "surface"), QT_TRANSLATE_NOOP("gettextFromC", "safety stop"),
-		QT_TRANSLATE_NOOP("gettextFromC", "gaschange"), QT_TRANSLATE_NOOP("gettextFromC", "safety stop (voluntary)"), QT_TRANSLATE_NOOP("gettextFromC", "safety stop (mandatory)"),
-		QT_TRANSLATE_NOOP("gettextFromC", "deepstop"), QT_TRANSLATE_NOOP("gettextFromC", "ceiling (safety stop)"), QT_TRANSLATE_NOOP3("gettextFromC", "below floor", "event showing dive is below deco floor and adding deco time"), QT_TRANSLATE_NOOP("gettextFromC", "divetime"),
-		QT_TRANSLATE_NOOP("gettextFromC", "maxdepth"), QT_TRANSLATE_NOOP("gettextFromC", "OLF"), QT_TRANSLATE_NOOP("gettextFromC", "pO₂"), QT_TRANSLATE_NOOP("gettextFromC", "airtime"), QT_TRANSLATE_NOOP("gettextFromC", "rgbm"), QT_TRANSLATE_NOOP("gettextFromC", "heading"),
-		QT_TRANSLATE_NOOP("gettextFromC", "tissue level warning"), QT_TRANSLATE_NOOP("gettextFromC", "gaschange"), QT_TRANSLATE_NOOP("gettextFromC", "non stop time")
+		[SAMPLE_EVENT_NONE]			= QT_TRANSLATE_NOOP("gettextFromC", "none"),
+		[SAMPLE_EVENT_DECOSTOP]			= QT_TRANSLATE_NOOP("gettextFromC", "deco stop"),
+		[SAMPLE_EVENT_RBT]			= QT_TRANSLATE_NOOP("gettextFromC", "rbt"),
+		[SAMPLE_EVENT_ASCENT]			= QT_TRANSLATE_NOOP("gettextFromC", "ascent"),
+		[SAMPLE_EVENT_CEILING]			= QT_TRANSLATE_NOOP("gettextFromC", "ceiling"),
+		[SAMPLE_EVENT_WORKLOAD]			= QT_TRANSLATE_NOOP("gettextFromC", "workload"),
+		[SAMPLE_EVENT_TRANSMITTER]		= QT_TRANSLATE_NOOP("gettextFromC", "transmitter"),
+		[SAMPLE_EVENT_VIOLATION]		= QT_TRANSLATE_NOOP("gettextFromC", "violation"),
+		[SAMPLE_EVENT_BOOKMARK]			= QT_TRANSLATE_NOOP("gettextFromC", "bookmark"),
+		[SAMPLE_EVENT_SURFACE]			= QT_TRANSLATE_NOOP("gettextFromC", "surface"),
+		[SAMPLE_EVENT_SAFETYSTOP]		= QT_TRANSLATE_NOOP("gettextFromC", "safety stop"),
+		[SAMPLE_EVENT_GASCHANGE]		= QT_TRANSLATE_NOOP("gettextFromC", "gaschange"),
+		[SAMPLE_EVENT_SAFETYSTOP_VOLUNTARY]	= QT_TRANSLATE_NOOP("gettextFromC", "safety stop (voluntary)"),
+		[SAMPLE_EVENT_SAFETYSTOP_MANDATORY]	= QT_TRANSLATE_NOOP("gettextFromC", "safety stop (mandatory)"),
+		[SAMPLE_EVENT_DEEPSTOP]			= QT_TRANSLATE_NOOP("gettextFromC", "deepstop"),
+		[SAMPLE_EVENT_CEILING_SAFETYSTOP]	= QT_TRANSLATE_NOOP("gettextFromC", "ceiling (safety stop)"),
+		[SAMPLE_EVENT_FLOOR]			= QT_TRANSLATE_NOOP3("gettextFromC", "below floor", "event showing dive is below deco floor and adding deco time"),
+		[SAMPLE_EVENT_DIVETIME]			= QT_TRANSLATE_NOOP("gettextFromC", "divetime"),
+		[SAMPLE_EVENT_MAXDEPTH]			= QT_TRANSLATE_NOOP("gettextFromC", "maxdepth"),
+		[SAMPLE_EVENT_OLF]			= QT_TRANSLATE_NOOP("gettextFromC", "OLF"),
+		[SAMPLE_EVENT_PO2]			= QT_TRANSLATE_NOOP("gettextFromC", "pO₂"),
+		[SAMPLE_EVENT_AIRTIME]			= QT_TRANSLATE_NOOP("gettextFromC", "airtime"),
+		[SAMPLE_EVENT_RGBM]			= QT_TRANSLATE_NOOP("gettextFromC", "rgbm"),
+		[SAMPLE_EVENT_HEADING]			= QT_TRANSLATE_NOOP("gettextFromC", "heading"),
+		[SAMPLE_EVENT_TISSUELEVEL]		= QT_TRANSLATE_NOOP("gettextFromC", "tissue level warning"),
+		[SAMPLE_EVENT_GASCHANGE2]		= QT_TRANSLATE_NOOP("gettextFromC", "gaschange"),
 	};
 	const int nr_events = sizeof(events) / sizeof(const char *);
 	const char *name;
@@ -235,7 +255,7 @@ static void handle_event(struct divecomputer *dc, struct sample *sample, dc_samp
 	 */
 	type = value.event.type;
 	name = QT_TRANSLATE_NOOP("gettextFromC", "invalid event number");
-	if (type < nr_events)
+	if (type < nr_events && events[type])
 		name = events[type];
 #ifdef SAMPLE_EVENT_STRING
 	if (type == SAMPLE_EVENT_STRING)
@@ -249,6 +269,14 @@ static void handle_event(struct divecomputer *dc, struct sample *sample, dc_samp
 	ev = add_event(dc, time, type, value.event.flags, value.event.value, name);
 	if (event_is_gaschange(ev) && ev->gas.index >= 0)
 		current_gas_index = ev->gas.index;
+}
+
+static void handle_gasmix(struct divecomputer *dc, struct sample *sample, int idx)
+{
+	if (idx < 0 || idx >= MAX_CYLINDERS)
+		return;
+	add_event(dc, sample->time.seconds, SAMPLE_EVENT_GASCHANGE2, idx+1, 0, "gaschange");
+	current_gas_index = idx;
 }
 
 void
@@ -306,6 +334,9 @@ sample_cb(dc_sample_type_t type, dc_sample_value_t value, void *userdata)
 		}
 		sample->sensor = value.pressure.tank;
 		sample->cylinderpressure.mbar = rint(value.pressure.value * 1000);
+		break;
+	case DC_SAMPLE_GASMIX:
+		handle_gasmix(dc, sample, value.gasmix);
 		break;
 	case DC_SAMPLE_TEMPERATURE:
 		sample->temperature.mkelvin = C_to_mkelvin(value.temperature);
@@ -1079,29 +1110,15 @@ dc_status_t libdc_buffer_parser(struct dive *dive, device_data_t *data, unsigned
 	dc_status_t rc;
 	dc_parser_t *parser = NULL;
 
-	switch (data->descriptor->type) {
+	switch (dc_descriptor_get_type(data->descriptor)) {
 	case DC_FAMILY_UWATEC_ALADIN:
 	case DC_FAMILY_UWATEC_MEMOMOUSE:
-		rc = uwatec_memomouse_parser_create(&parser, data->context, 0, 0);
-		break;
 	case DC_FAMILY_UWATEC_SMART:
 	case DC_FAMILY_UWATEC_MERIDIAN:
-		rc = uwatec_smart_parser_create (&parser, data->context, data->descriptor->model, 0, 0);
-		break;
 	case DC_FAMILY_HW_OSTC:
-#if defined(SSRF_CUSTOM_SERIAL)
-		rc = hw_ostc_parser_create (&parser, data->context, data->deviceid, 0);
-#else
-		rc = hw_ostc_parser_create (&parser, data->context, data->deviceid);
-#endif
-		break;
 	case DC_FAMILY_HW_FROG:
 	case DC_FAMILY_HW_OSTC3:
-#if defined(SSRF_CUSTOM_SERIAL)
-		rc = hw_ostc_parser_create (&parser, data->context, data->deviceid, 1);
-#else
-		rc = hw_ostc_parser_create (&parser, data->context, data->deviceid);
-#endif
+		rc = dc_parser_new2(&parser, data->context, data->descriptor, 0, 0);
 		break;
 	default:
 		report_error("Device type not handled!");
@@ -1120,7 +1137,7 @@ dc_status_t libdc_buffer_parser(struct dive *dive, device_data_t *data, unsigned
 	}
 	// Do not parse Aladin/Memomouse headers as they are fakes
 	// Do not return on error, we can still parse the samples
-	if (data->descriptor->type != DC_FAMILY_UWATEC_ALADIN && data->descriptor->type != DC_FAMILY_UWATEC_MEMOMOUSE) {
+	if (dc_descriptor_get_type(data->descriptor) != DC_FAMILY_UWATEC_ALADIN && dc_descriptor_get_type(data->descriptor) != DC_FAMILY_UWATEC_MEMOMOUSE) {
 		rc = libdc_header_parser (parser, data, dive);
 		if (rc != DC_STATUS_SUCCESS) {
 			report_error("Error parsing the dive header data. Dive # %d\nStatus = %s", dive->number, errmsg(rc));
