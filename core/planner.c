@@ -411,7 +411,7 @@ struct divedatapoint *plan_add_segment(struct diveplan *diveplan, int duration, 
 	struct divedatapoint *dp = create_dp(duration, depth, cylinderid, po2);
 	dp->entered = entered;
 	add_to_end_of_diveplan(diveplan, dp);
-	return (dp);
+	return dp;
 }
 
 struct gaschanges {
@@ -579,39 +579,22 @@ static void add_plan_to_notes(struct diveplan *diveplan, struct dive *dive, bool
 		return;
 	}
 
-	len = show_disclaimer ? snprintf(buffer, sz_buffer, "<div><b>%s<b></div><br>", disclaimer) : 0;
-	if (decoMode() == BUEHLMANN){
-		snprintf(temp, sz_temp, translate("gettextFromC", "based on Bühlmann ZHL-16C with GFlow = %d and GFhigh = %d"),
-			diveplan->gflow, diveplan->gfhigh);
-	} else if (decoMode() == VPMB){
-		int temp_len;
-		if (diveplan->vpmb_conservatism == 0)
-			temp_len = snprintf(temp, sz_temp, "%s", translate("gettextFromC", "based on VPM-B at nominal conservatism"));
-		else
-			temp_len = snprintf(temp, sz_temp, translate("gettextFromC", "based on VPM-B at +%d conservatism"), diveplan->vpmb_conservatism);
-		if(diveplan->eff_gflow)
-			temp_len += snprintf(temp + temp_len, sz_temp - temp_len,  translate("gettextFromC", ", effective GF=%d/%d"), diveplan->eff_gflow
-					     , diveplan->eff_gfhigh);
+	len = show_disclaimer ? snprintf(buffer, sz_buffer, "<div><b>%s<b><br></div>", disclaimer) : 0;
 
-	} else if (decoMode() == RECREATIONAL){
-		snprintf(temp, sz_temp, translate("gettextFromC", "recreational mode based on Bühlmann ZHL-16B with GFlow = %d and GFhigh = %d"),
-			diveplan->gflow, diveplan->gfhigh);
-	}
 	if (diveplan->surface_interval > 60) {
-		len += snprintf(buffer + len, sz_buffer - len, "<div><b>%s %d:%02d)</b><br>%s</div>",
+		len += snprintf(buffer + len, sz_buffer - len, "<div><b>%s %d:%02d)</b><br>",
 				translate("gettextFromC", "Subsurface dive plan (surface interval "),
-				FRACTION(diveplan->surface_interval / 60, 60),
-				temp);
+				FRACTION(diveplan->surface_interval / 60, 60));
 	} else {
-		len += snprintf(buffer + len, sz_buffer - len, "<div><b>%s</b><br>%s</div>",
-				translate("gettextFromC", "Subsurface dive plan"),
-				temp);
+		len += snprintf(buffer + len, sz_buffer - len, "<div><b>%s</b><br>",
+				translate("gettextFromC", "Subsurface dive plan"));
 	}
-	len += snprintf(buffer + len, sz_buffer - len, translate("gettextFromC", "<div>Runtime: %dmin</div><br>"),
+
+	len += snprintf(buffer + len, sz_buffer - len, translate("gettextFromC", "Runtime: %dmin<br></div>"),
 			diveplan_duration(diveplan));
 
 	if (!plan_verbatim) {
-		len += snprintf(buffer + len, sz_buffer - len, "<div><table><thead><tr><th></th><th>%s</th>",
+		len += snprintf(buffer + len, sz_buffer - len, "<table><thead><tr><th></th><th>%s</th>",
 				translate("gettextFromC", "depth"));
 		if (plan_display_duration)
 			len += snprintf(buffer + len, sz_buffer - len, "<th style='padding-left: 10px;'>%s</th>",
@@ -804,21 +787,63 @@ static void add_plan_to_notes(struct diveplan *diveplan, struct dive *dive, bool
 		lastentered = dp->entered;
 	} while ((dp = nextdp) != NULL);
 	if (!plan_verbatim)
-		len += snprintf(buffer + len, sz_buffer - len, "</tbody></table></div>");
+		len += snprintf(buffer + len, sz_buffer - len, "</tbody></table><br>");
 
+	/* Print the CNS and OTU next.*/
 	dive->cns = 0;
 	dive->maxcns = 0;
 	update_cylinder_related_info(dive);
 	snprintf(temp, sz_temp, "%s", translate("gettextFromC", "CNS"));
-	len += snprintf(buffer + len, sz_buffer - len, "<div><br>%s: %i%%", temp, dive->cns);
+	len += snprintf(buffer + len, sz_buffer - len, "<div>%s: %i%%", temp, dive->cns);
 	snprintf(temp, sz_temp, "%s", translate("gettextFromC", "OTU"));
-	len += snprintf(buffer + len, sz_buffer - len, "<br>%s: %i</div>", temp, dive->otu);
+	len += snprintf(buffer + len, sz_buffer - len, "<br>%s: %i<br></div>", temp, dive->otu);
 
+	/* Print the settings for the diveplan next. */
+	if (decoMode() == BUEHLMANN){
+		snprintf(temp, sz_temp, translate("gettextFromC", "Deco model: Bühlmann ZHL-16C with GFlow = %d and GFhigh = %d"),
+			diveplan->gflow, diveplan->gfhigh);
+	} else if (decoMode() == VPMB){
+		int temp_len;
+		if (diveplan->vpmb_conservatism == 0)
+			temp_len = snprintf(temp, sz_temp, "%s", translate("gettextFromC", "Deco model: VPM-B at nominal conservatism"));
+		else
+			temp_len = snprintf(temp, sz_temp, translate("gettextFromC", "Deco model: VPM-B at +%d conservatism"), diveplan->vpmb_conservatism);
+		if (diveplan->eff_gflow)
+			temp_len += snprintf(temp + temp_len, sz_temp - temp_len,  translate("gettextFromC", ", effective GF=%d/%d"), diveplan->eff_gflow
+					     , diveplan->eff_gfhigh);
+
+	} else if (decoMode() == RECREATIONAL){
+		snprintf(temp, sz_temp, translate("gettextFromC", "Deco model: Recreational mode based on Bühlmann ZHL-16B with GFlow = %d and GFhigh = %d"),
+			diveplan->gflow, diveplan->gfhigh);
+	}
+	len += snprintf(buffer + len, sz_buffer - len, "<div>%s<br>",temp);
+
+	const char *depth_unit;
+	int altitude = (int) get_depth_units((int) (log(1013.0 / diveplan->surface_pressure) * 7800000), NULL, &depth_unit);
+
+	len += snprintf(buffer + len, sz_buffer - len, translate("gettextFromC", "ATM pressure: %dmbar (%d%s)<br></div>"),
+			diveplan->surface_pressure,
+			altitude,
+			depth_unit);
+
+	/* Get SAC values and units for printing it in gas consumption */
+	float bottomsacvalue, decosacvalue;
+	int sacdecimals;
+	const char* sacunit;
+
+	bottomsacvalue = get_volume_units(prefs.bottomsac, &sacdecimals, &sacunit);
+	decosacvalue = get_volume_units(prefs.decosac, NULL, NULL);
+
+	/* Reduce number of decimals from 1 to 0 for bar/min, keep 2 for cuft/min */
+	if (sacdecimals==1) sacdecimals--;
+
+	/* Print the gas consumption next.*/
 	if (dive->dc.divemode == CCR)
 		snprintf(temp, sz_temp, "%s", translate("gettextFromC", "Gas consumption (CCR legs excluded):"));
 	else
-		snprintf(temp, sz_temp, "%s", translate("gettextFromC", "Gas consumption:"));
-	len += snprintf(buffer + len, sz_buffer - len, "<div><br>%s<br>", temp);
+		snprintf(temp, sz_temp, "%s %.*f|%.*f%s/min):", translate("gettextFromC", "Gas consumption (based on SAC"),
+			sacdecimals, bottomsacvalue, sacdecimals, decosacvalue, sacunit);
+	len += snprintf(buffer + len, sz_buffer - len, "<div>%s<br>", temp);
 	for (int gasidx = 0; gasidx < MAX_CYLINDERS; gasidx++) {
 		double volume, pressure, deco_volume, deco_pressure;
 		const char *unit, *pressure_unit;
@@ -981,7 +1006,7 @@ bool enough_gas(int current_cylinder)
 	if (!cyl->start.mbar)
 		return true;
 	if (cyl->type.size.mliter)
-		return (float) (cyl->end.mbar - prefs.reserve_gas)	 * cyl->type.size.mliter / 1000.0 > (float) cyl->deco_gas_used.mliter;
+		return (float)(cyl->end.mbar - prefs.reserve_gas) * cyl->type.size.mliter / 1000.0 > (float) cyl->deco_gas_used.mliter;
 	else
 		return true;
 }
@@ -1064,7 +1089,7 @@ bool plan(struct diveplan *diveplan, char **cached_datap, bool is_planner, bool 
 		transitiontime = depth / 75; /* this still needs to be made configurable */
 		plan_add_segment(diveplan, transitiontime, 0, current_cylinder, po2, false);
 		create_dive_from_plan(diveplan, is_planner);
-		return(false);
+		return false;
 	}
 
 #if DEBUG_PLAN & 4
@@ -1101,7 +1126,7 @@ bool plan(struct diveplan *diveplan, char **cached_datap, bool is_planner, bool 
 	nuclear_regeneration(clock);
 	vpmb_start_gradient();
 
-	if(decoMode() == RECREATIONAL) {
+	if (decoMode() == RECREATIONAL) {
 		bool safety_stop = prefs.safetystop && max_depth >= 10000;
 		track_ascent_gas(depth, &displayed_dive.cylinder[current_cylinder], avg_depth, bottom_time, safety_stop);
 		// How long can we stay at the current depth and still directly ascent to the surface?
@@ -1152,7 +1177,7 @@ bool plan(struct diveplan *diveplan, char **cached_datap, bool is_planner, bool 
 
 		free(stoplevels);
 		free(gaschanges);
-		return(false);
+		return false;
 	}
 
 	if (best_first_ascend_cylinder != current_cylinder) {
@@ -1329,7 +1354,7 @@ bool plan(struct diveplan *diveplan, char **cached_datap, bool is_planner, bool 
 								this_decotimestep, po2, &displayed_dive, prefs.decosac);
 				clock += this_decotimestep;
 				/* Finish infinite deco */
-				if(clock >= 48 * 3600 && depth >= 6000) {
+				if (clock >= 48 * 3600 && depth >= 6000) {
 					error = LONGDECO;
 					break;
 				}
@@ -1377,9 +1402,9 @@ bool plan(struct diveplan *diveplan, char **cached_datap, bool is_planner, bool 
 	} while (!is_final_plan);
 
 	plan_add_segment(diveplan, clock - previous_point_time, 0, current_cylinder, po2, false);
-	if(decoMode() == VPMB) {
+	if (decoMode() == VPMB) {
 		diveplan->eff_gfhigh = rint(100.0 * regressionb());
-		diveplan->eff_gflow = rint(100*(regressiona() * first_stop_depth + regressionb()));
+		diveplan->eff_gflow = rint(100.0 * (regressiona() * first_stop_depth + regressionb()));
 	}
 
 	create_dive_from_plan(diveplan, is_planner);
@@ -1449,9 +1474,9 @@ int validate_gas(const char *text, struct gasmix *gas)
 		he = 0;
 		text += strlen(translate("gettextFromC", "air"));
 	} else if (!strcasecmp(text, translate("gettextFromC", "oxygen"))) {
-			o2 = 1000;
-			he = 0;
-			text += strlen(translate("gettextFromC", "oxygen"));
+		o2 = 1000;
+		he = 0;
+		text += strlen(translate("gettextFromC", "oxygen"));
 	} else if (!strncasecmp(text, translate("gettextFromC", "ean"), 3)) {
 		o2 = get_permille(text + 3, &text);
 		he = 0;

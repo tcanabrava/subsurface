@@ -27,7 +27,7 @@ int main(int argc, char **argv)
 
 	bool dedicated_console = arguments.length() > 1 &&
 				 (arguments.at(1) == QString("--win32console"));
-	subsurface_console_init(dedicated_console);
+	subsurface_console_init(dedicated_console, false);
 
 	for (i = 1; i < arguments.length(); i++) {
 		QString a = arguments.at(i);
@@ -54,7 +54,6 @@ int main(int argc, char **argv)
 	prefs.animation_speed = 0; // we render the profile to pixmap, no animations
 
 	// always show the divecomputer reported ceiling in red
-	prefs.dcceiling = 1;
 	prefs.redceiling = 1;
 
 	init_proxy();

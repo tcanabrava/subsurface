@@ -861,6 +861,16 @@ static void save_settings(git_repository *repo, struct dir *tree)
 	call_for_each_dc(&b, save_one_device, false);
 	cond_put_format(autogroup, &b, "autogroup\n");
 	save_units(&b);
+	if (prefs.tankbar)
+		put_string(&b, "prefs TANKBAR\n");
+	if (prefs.dcceiling)
+		put_string(&b, "prefs DCCEILING\n");
+	if (prefs.show_ccr_setpoint)
+		put_string(&b, "prefs SHOW_SETPOINT\n");
+	if (prefs.show_ccr_sensors)
+		put_string(&b, "prefs SHOW_SENSORS\n");
+	if (prefs.pp_graphs.po2)
+		put_string(&b, "prefs PO2_GRAPH\n");
 
 	blob_insert(repo, tree, &b, "00-Subsurface");
 }
