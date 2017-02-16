@@ -426,8 +426,9 @@ static struct gaschanges *analyze_gaslist(struct diveplan *diveplan, int *gascha
 	struct gaschanges *gaschanges = NULL;
 	struct divedatapoint *dp = diveplan->dp;
 	int best_depth = displayed_dive.cylinder[*asc_cylinder].depth.mm;
+	bool total_time_zero = true;
 	while (dp) {
-		if (dp->time == 0) {
+		if (dp->time == 0 && total_time_zero) {
 			if (dp->depth <= depth) {
 				int i = 0;
 				nr++;
@@ -449,6 +450,8 @@ static struct gaschanges *analyze_gaslist(struct diveplan *diveplan, int *gascha
 					*asc_cylinder = dp->cylinderid;
 				}
 			}
+		} else {
+			total_time_zero = false;
 		}
 		dp = dp->next;
 	}
@@ -734,7 +737,7 @@ static void add_plan_to_notes(struct diveplan *diveplan, struct dive *dive, bool
 				/* Normally a gas change is displayed on the stopping segment, so only display a gas change at the end of
 				 * an ascent segment if it is not followed by a stop
 				 */
-				if (isascent && gaschange_after && dp->next && nextdp && dp->depth != nextdp->depth) {
+				if ((isascent || dp->entered) && gaschange_after && dp->next && nextdp && (dp->depth != nextdp->depth || nextdp->entered)) {
 					if (dp->setpoint) {
 						snprintf(temp, sz_temp, translate("gettextFromC", "(SP = %.1fbar)"), (double) nextdp->setpoint / 1000.0);
 						len += snprintf(buffer + len, sz_buffer - len, "<td style='padding-left: 10px; color: red; float: left;'><b>%s %s</b></td>", gasname(&newgasmix),

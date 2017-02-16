@@ -27,6 +27,7 @@
 #include <string.h>
 #include <mdbtools.h>
 #include <stdarg.h>
+#include <locale.h>
 
 #include "core/dive.h"
 #include "core/gettext.h"
@@ -104,7 +105,7 @@ static void smtk_time_to_tm(char *t_buffer, struct tm *tm_date)
 {
 	char *temp = NULL;
 
-	temp = rindex(copy_string(t_buffer), ' ');
+	temp = index(copy_string(t_buffer), ' ');
 	if (temp)
 		strptime(temp, "%X", tm_date);
 }
@@ -117,15 +118,11 @@ static void smtk_time_to_tm(char *t_buffer, struct tm *tm_date)
  */
 static unsigned int smtk_time_to_secs(char *t_buffer)
 {
-	char *temp;
-	unsigned int hr, min, sec;
+	unsigned int n, hr, min, sec;
 
 	if (!same_string(t_buffer, "")) {
-		temp = rindex(copy_string(t_buffer), ' ');
-		hr = atoi(strtok(temp, ":"));
-		min = atoi(strtok(NULL, ":"));
-		sec = atoi(strtok(NULL, "\0"));
-		return((((hr*60)+min)*60)+sec);
+		n = sscanf(t_buffer, "%*m[/0-9] %d:%d:%d ", &hr, &min, &sec);
+		return((n == 3) ? (((hr*60)+min)*60)+sec : 0);
 	} else {
 		return 0;
 	}
@@ -655,10 +652,11 @@ void smartrak_import(const char *file, struct dive_table *divetable)
 	MdbHandle *mdb, *mdb_clon;
 	MdbTableDef *mdb_table;
 	MdbColumn *col[MDB_MAX_COLS];
-
 	char *bound_values[MDB_MAX_COLS];
 	int i, dc_model;
 
+	// Set an european style locale to work date/time conversion
+	setlocale(LC_TIME, "POSIX");
 	mdb = mdb_open(file, MDB_NOFLAGS);
 	if (!mdb) {
 		report_error("[Error][smartrak_import]\tFile %s does not seem to be an Access database.", file);
@@ -769,7 +767,7 @@ void smartrak_import(const char *file, struct dive_table *divetable)
 		/* Date issues with libdc parser - Take date time from mdb */
 		smtk_date_to_tm(col[coln(DATE)]->bind_ptr, tm_date);
 		smtk_time_to_tm(col[coln(INTIME)]->bind_ptr, tm_date);
-		smtkdive->dc.when = smtkdive->when = mktime(tm_date);
+		smtkdive->dc.when = smtkdive->when = timegm(tm_date);
 		free(tm_date);
 		smtkdive->dc.surfacetime.seconds = smtk_time_to_secs(col[coln(INTVAL)]->bind_ptr);
 
