@@ -8,6 +8,7 @@
 #include <zip.h>
 #include <sqlite3.h>
 #include <string.h>
+#include <sys/stat.h>
 #include "divesite.h"
 
 /* Windows has no MIN/MAX macros - so let's just roll our own */
@@ -400,13 +401,13 @@ struct picture {
 extern struct picture *alloc_picture();
 extern struct picture *clone_picture(struct picture *src);
 extern bool dive_check_picture_time(struct dive *d, int shift_time, timestamp_t timestamp);
-extern void dive_create_picture(struct dive *d, char *filename, int shift_time, bool match_all);
+extern void dive_create_picture(struct dive *d, const char *filename, int shift_time, bool match_all);
 extern void dive_add_picture(struct dive *d, struct picture *newpic);
 extern void dive_remove_picture(char *filename);
 extern unsigned int dive_get_picture_count(struct dive *d);
-extern bool picture_check_valid(char *filename, int shift_time);
+extern bool picture_check_valid(const char *filename, int shift_time);
 extern void picture_load_exif_data(struct picture *p);
-extern timestamp_t picture_get_timestamp(char *filename);
+extern timestamp_t picture_get_timestamp(const char *filename);
 extern void dive_set_geodata_from_picture(struct dive *d, struct picture *pic);
 extern void picture_free(struct picture *picture);
 
@@ -728,6 +729,7 @@ extern int subsurface_open(const char *path, int oflags, mode_t mode);
 extern FILE *subsurface_fopen(const char *path, const char *mode);
 extern void *subsurface_opendir(const char *path);
 extern int subsurface_access(const char *path, int mode);
+extern int subsurface_stat(const char* path, struct stat* buf);
 extern struct zip *subsurface_zip_open_readonly(const char *path, int flags, int *errorp);
 extern int subsurface_zip_close(struct zip *zip);
 extern void subsurface_console_init(bool dedicated, bool logfile);

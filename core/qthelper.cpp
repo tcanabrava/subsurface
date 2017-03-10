@@ -352,9 +352,9 @@ extern "C" xsltStylesheetPtr get_stylesheet(const char *name)
 }
 
 
-extern "C" timestamp_t picture_get_timestamp(char *filename)
+extern "C" timestamp_t picture_get_timestamp(const char *filename)
 {
-	EXIFInfo exif;
+	easyexif::EXIFInfo exif;
 	memblock mem;
 	int retval;
 
@@ -755,6 +755,30 @@ int gettimezoneoffset(timestamp_t when)
 	return dt2.secsTo(dt1);
 }
 
+int parseDurationToSeconds(const QString &text)
+{
+	int secs;
+	QString numOnly = text;
+	QString hours, minutes, seconds;
+	numOnly.replace(",", ".").remove(QRegExp("[^-0-9.:]"));
+	if (numOnly.isEmpty())
+		return 0;
+	if (numOnly.contains(':')) {
+		hours = numOnly.left(numOnly.indexOf(':'));
+		minutes = numOnly.right(numOnly.length() - hours.length() - 1);
+		if (minutes.contains(':')) {
+			numOnly = minutes;
+			minutes = numOnly.left(numOnly.indexOf(':'));
+			seconds = numOnly.right(numOnly.length() - minutes.length() - 1);
+		}
+	} else {
+		hours = "0";
+		minutes = numOnly;
+	}
+	secs = hours.toDouble() * 3600 + minutes.toDouble() * 60 + seconds.toDouble();
+	return secs;
+}
+
 int parseLengthToMm(const QString &text)
 {
 	int mm;
@@ -999,7 +1023,7 @@ QMutex hashOfMutex;
 QHash<QByteArray, QString> localFilenameOf;
 QHash <QString, QImage > thumbnailCache;
 
-extern "C" char * hashstring(char * filename)
+extern "C" char * hashstring(const char *filename)
 {
 	QMutexLocker locker(&hashOfMutex);
 	return hashOf[QString(filename)].toHex().data();
@@ -1084,7 +1108,7 @@ void learnHash(struct picture *picture, QByteArray hash)
 	picture->hash = strdup(hash.toHex());
 }
 
-bool haveHash(QString &filename)
+bool haveHash(const QString &filename)
 {
 	QMutexLocker locker(&hashOfMutex);
 	return hashOf.contains(filename);
@@ -1100,7 +1124,7 @@ QString localFilePath(const QString originalFilename)
 		return originalFilename;
 }
 
-QString fileFromHash(char *hash)
+QString fileFromHash(const char *hash)
 {
 	if (!hash || !*hash)
 		return "";
@@ -1211,7 +1235,7 @@ extern "C" void savePictureLocal(struct picture *picture, const char *data, int 
 
 extern "C" void picture_load_exif_data(struct picture *p)
 {
-	EXIFInfo exif;
+	easyexif::EXIFInfo exif;
 	memblock mem;
 
 	if (readfile(localFilePath(QString(p->filename)).toUtf8().data(), &mem) <= 0)

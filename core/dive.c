@@ -2195,11 +2195,12 @@ static void merge_equipment(struct dive *res, struct dive *a, struct dive *b)
 		merge_weightsystem_info(res->weightsystem + i, a->weightsystem + i, b->weightsystem + i);
 }
 
-static void merge_airtemps(struct dive *res, struct dive *a, struct dive *b)
+static void merge_temperatures(struct dive *res, struct dive *a, struct dive *b)
 {
 	un_fixup_airtemp(a);
 	un_fixup_airtemp(b);
 	MERGE_NONZERO(res, a, b, airtemp.mkelvin);
+	MERGE_NONZERO(res, a, b, watertemp.mkelvin);
 }
 
 /*
@@ -3158,7 +3159,7 @@ struct dive *merge_dives(struct dive *a, struct dive *b, int offset, bool prefer
 	MERGE_NONZERO(res, a, b, picture_list);
 	taglist_merge(&res->tag_list, a->tag_list, b->tag_list);
 	merge_equipment(res, a, b);
-	merge_airtemps(res, a, b);
+	merge_temperatures(res, a, b);
 	if (dl) {
 		/* If we prefer downloaded, do those first, and get rid of "might be same" computers */
 		join_dive_computers(&res->dc, &dl->dc, &a->dc, 1);
@@ -3166,7 +3167,11 @@ struct dive *merge_dives(struct dive *a, struct dive *b, int offset, bool prefer
 		interleave_dive_computers(&res->dc, &a->dc, &b->dc, offset);
 	else
 		join_dive_computers(&res->dc, &a->dc, &b->dc, 0);
-	res->dive_site_uuid = a->dive_site_uuid ?: b->dive_site_uuid;
+	/* we take the first dive site, unless it's empty */
+	if (a->dive_site_uuid && !dive_site_is_empty(get_dive_site_by_uuid(a->dive_site_uuid)))
+		res->dive_site_uuid = a->dive_site_uuid;
+	else
+		res->dive_site_uuid = b->dive_site_uuid;
 	fixup_dive(res);
 	return res;
 }
@@ -3602,7 +3607,7 @@ struct picture *alloc_picture()
 	return pic;
 }
 
-static bool new_picture_for_dive(struct dive *d, char *filename)
+static bool new_picture_for_dive(struct dive *d, const char *filename)
 {
 	FOR_EACH_PICTURE (d) {
 		if (same_string(picture->filename, filename))
@@ -3627,7 +3632,7 @@ bool dive_check_picture_time(struct dive *d, int shift_time, timestamp_t timesta
 	return false;
 }
 
-bool picture_check_valid(char *filename, int shift_time)
+bool picture_check_valid(const char *filename, int shift_time)
 {
 	int i;
 	struct dive *dive;
@@ -3639,7 +3644,7 @@ bool picture_check_valid(char *filename, int shift_time)
 	return false;
 }
 
-void dive_create_picture(struct dive *dive, char *filename, int shift_time, bool match_all)
+void dive_create_picture(struct dive *dive, const char *filename, int shift_time, bool match_all)
 {
 	timestamp_t timestamp = picture_get_timestamp(filename);
 	if (!new_picture_for_dive(dive, filename))

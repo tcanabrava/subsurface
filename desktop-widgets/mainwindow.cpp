@@ -892,7 +892,7 @@ void MainWindow::printPlan()
 
 	plannerDetails()->divePlanOutput()->setHtml(withDisclaimer);
 	plannerDetails()->divePlanOutput()->print(&printer);
-	plannerDetails()->divePlanOutput()->setHtml(diveplan);
+	plannerDetails()->divePlanOutput()->setHtml(displayed_dive.notes);
 #endif
 }
 
@@ -986,6 +986,11 @@ void MainWindow::on_actionAddDive_triggered()
 	DivePlannerPointsModel::instance()->createSimpleDive();
 	configureToolbar();
 	graphics()->plotDive();
+	fixup_dc_duration(&displayed_dive.dc);
+	displayed_dive.duration = displayed_dive.dc.duration;
+
+	// now that we have the correct depth and duration, update the dive info
+	information()->updateDepthDuration();
 }
 
 void MainWindow::on_actionEditDive_triggered()
@@ -1235,6 +1240,11 @@ QString MainWindow::filter()
 	f += "*.uddf *.UDDF ";
 	f += "*.xml *.XML ";
 	f += "*.dlf *.DLF ";
+	f += "*.log *.LOG ";
+	f += "*.txt *.TXT) ";
+	f += "*.apd *.APD) ";
+	f += "*.dive *.DIVE ";
+	f += "*.zxu *.zxl *.ZXU *.ZXL ";
 	f += ");;";
 
 	f += "Subsurface (*.ssrf);;";
@@ -1245,9 +1255,13 @@ QString MainWindow::filter()
 	f += "Suunto (*.sde *.SDE *.db *.DB);;";
 	f += "UDCF (*.udcf *.UDCF);;";
 	f += "UDDF (*.uddf *.UDDF);;";
-	f += "XML (*.xml *.XML)";
-	f += "Divesoft (*.dlf *.DLF)";
-	f += "Datatrak/WLog Files (*.log *.LOG)";
+	f += "XML (*.xml *.XML);;";
+	f += "Divesoft (*.dlf *.DLF);;";
+	f += "Datatrak/WLog Files (*.log *.LOG);;";
+	f += "MkVI files (*.txt *.TXT);;";
+	f += "APD log viewer (*.apd *.APD);;";
+	f += "OSTCtools Files (*.dive *.DIVE);;";
+	f += "DAN DL7 (*.zxu *.zxl *.ZXU *.ZXL)";
 
 	return f;
 }

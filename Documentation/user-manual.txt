@@ -9,7 +9,7 @@
 :toc2:
 :toc-placement: manual
 :numbered:
-// :website: http://subsurface-divelog.org
+// :website: https://subsurface-divelog.org
 
 image::images/Subsurface4Banner.jpg["Banner",align="center"]
 
@@ -46,14 +46,15 @@ software solutions:
    you view your dive log from anywhere using an Internet browser?
  - Do you wish to access or modify your dive log using a mobile phone?
 
-_Subsurface_ binaries are available for Windows PCs (Win XP or later), Intel
-based Macs (OS/X) and many Linux distributions. _Subsurface_ can be built for
+_Subsurface_ binaries are available for Windows PCs (Win 7 or later from
+version 4.6 of _Subsurface_ onwards), Intel based Macs (OS/X) and many
+Linux distributions. _Subsurface_ can be built for
 many more hardware platforms and software environments where Qt and
 libdivecomputer are available.
 
 This manual explains how to use the _Subsurface_ program. To install
 the software, consult the _Downloads_ page on the
-http://subsurface-divelog.org/[_Subsurface_ web site].
+https://subsurface-divelog.org/[_Subsurface_ web site].
 Please discuss issues with this program by sending an email to
 mailto:subsurface@subsurface-divelog.org[our mailing list] and report bugs at
 https://github.com/Subsurface-divelog/subsurface/issues[our bugtracker].  For instructions on how to build the
@@ -113,7 +114,7 @@ Start Using the Program
 -----------------------
 
 The _Subsurface_ window is usually divided into four panels with a *Main
-Menu* (File Import Log View Help) at the top of the window (for Windows
+Menu* (File Edit Import Log View Share Help) at the top of the window (for Windows
 and Linux) or the top of the screen (for Mac and Ubuntu Unity). The four panels are:
 
 1. The *Dive List* on the bottom left, showing all the dives in the
@@ -165,10 +166,9 @@ all highlighted dives.
 *Globe*: Show only the world map, centered on the last selected dive.
 
 Like other functions that can be accessed via the Main Menu, these options
-can also be triggered using keyboard shortcuts. The shortcuts for a particular system
-are shown with an underline in the main menu entries. Since different Operating
-Systems and the user’s chosen language may cause _Subsurface_ to use different
-shortcut keys, they are not listed in this user manual.
+can also be triggered using keyboard shortcuts. The shortcuts
+are shown with an underline in the main menu entries, with the Alt-key pressed,
+or are denoted after the menu item.
 
 When the program is started for the first time, it shows no
 information at all, because it does not have any dive information available. In the
@@ -216,7 +216,7 @@ These dives can be imported from:
 This is usually the approach for dives without a dive computer. The basic record
 of information within _Subsurface_ is a dive. The most important information
 in a simple dive logbook usually includes dive type, date, time, duration,
-depth, the names of your dive buddy and the dive master or dive guide, and
+depth, the names of your dive buddy and the divemaster or dive guide, and
 some remarks about the dive. _Subsurface_ can store much more
 information for each dive.  To add a dive to a dive log, select _Log
 ->  Add Dive_ from the Main Menu. The program then shows three panels
@@ -278,7 +278,7 @@ mixture specified in the *Equipment* tab, which was air in the case of the
 profile above. The gas mixtures of segments of the dive profile can
 be changed by right-clicking on the particular
 waypoint and selecting the appropriate gas from the context menu. Changing
-the gas for a waypoint affects the gas shown in the segment _to the left_ of
+the gas for a waypoint affects the gas shown in the segment _to the right_ of
 that
 waypoint. Note that only the gases defined in the *Equipment* tab appear in the
 context menu (see image below).
@@ -301,7 +301,7 @@ each dive, e.g. a detailed record of depth, duration, rates of ascent/descent
 and of gas partial pressures. _Subsurface_ can capture this information,
 using dive details from a wide range of dive computers. The latest list of supported
 dive computers can be found at:
-link:http://subsurface-divelog.org/documentation/supported-dive-computers/[
+link:https://subsurface-divelog.org/documentation/supported-dive-computers/[
 Supported dive computers].
 
 [icon="images/icons/warning2.png"]
@@ -349,7 +349,7 @@ image::images/DC_import_f20.jpg["FIGURE: Download dialogue 1",align="center"]
 Dive computers tend to keep a certain number of dives in memory, even
 though these dives have already been imported to _Subsurface_. For that reason, if
 the dive computer allows this,
-_Subsurface_ only imports dives that have not been uploaded before. This makes
+_Subsurface_ only imports dives that have not been downloaded before. This makes
 the download process faster on most dive computers and also saves battery power
 of the dive computer (at least for those not charging while connected via USB).
 
@@ -653,7 +653,7 @@ visible (left hand image, below):
 image::images/AddDive3_f22.jpg["FIGURE: The Notes tab",align="center"]
 
 The right hand image, above, shows a *Notes tab* filled with dive information.
-The *Time* field reflects the date and time of the dive. By clicking
+The *Date* and *Time* fields reflects the date and time of the dive. By clicking
 the date, a calendar is displayed for selecting
 the correct date. Press ESC to close the calendar.
 The time values (hour and minutes) can also be
@@ -687,8 +687,7 @@ made at the same location, the site information for the first dive is re-used.
 Existing dive locations
 can be edited by selecting (on the *Dive List* panel) a dive done at that site
 and by opening the location information. Click the globe button on the
-right of the location name (see image on the right, above). When entering a dive location name, auto location of
-dive site names makes it easy to select an existing dive site name.
+right of the location name (see image image *A* below).
 When typing the name of a dive site,
 a dropdown list appears showing all sites with similar names. If the dive
 site has been used before, click on the already-existing name.
@@ -701,7 +700,7 @@ dive site has not been used before, a message appears as follows (image *A* belo
 
 image::images/Locations1_f22.jpg["FIGURE:Location description panel",align="center"]
 
-Doubleclick on the new dive site name. A panel appears to enter the coordinates and
+Click the globe button and a panel appears to enter the coordinates and
 other information about the site (image *B*, above). The most important
 items are the coordinates of the site. There are three ways to specify coordinates:
 
@@ -759,7 +758,7 @@ rebreather) and pSCR (Passive semi-closed rebreather).
 
 *Divemaster*: The name of the divemaster or dive guide should be
 entered in this field
-which offers auto selection based on the list of dive masters in
+which offers auto selection based on the list of divemasters in
 the current logbook.
 
 *Buddy*: In this field, enter the name(s) of the buddy or buddies
@@ -877,7 +876,7 @@ image::images/WeightsDataEntry3_f20.jpg["FIGURE: A completed weights information
 
 ==== Editing several selected dives simultaneously
 
-_METHOD 1_: After uploading dives from
+_METHOD 1_: After downloading dives from
 a dive computer, the dive profiles of each is shown in the *Dive profile* tab, as well
 as a few items of information
 in the *Notes* tab (e.g. water temperature) and in the *Equipment* tab (e.g. gas pressures
@@ -970,7 +969,9 @@ _Subsurface_. Divelogs.de supports a few additional logbook formats that
 _Subsurface_ currently cannot handle.
 
 If the format of other software is supported natively on Subsurface, select
-either _Import ->  Import log files_ or _File ->  Open log file_. _Subsurface_ supports the data formats
+either _Import ->  Import log files_ or _File ->  Open log file_. Notice that
+the import adds the imported data to the current *Dive list*, and the open style
+starts a new dive list. _Subsurface_ supports the data formats
 of many dive computers, including Suunto, Shearwater and some CCR equipment. When importing dives, _Subsurface_
 tries to detect multiple records for
 the same dive and merges the information as best as it can. If
@@ -1005,6 +1006,8 @@ available, as in dialogue *B*, above. Currently these are:
  - Suunto Dive Manager (DM3, DM4, DM5)
  - DL7 files used by Diver's Alert network (DAN)
  - Underwater technologies AV1 dive logs
+ - Divesoft dive logs
+ - Poseidon MK VI eCCR dive logs
  - CSV (text-based and spreadsheet-based) dive logs, including APD CCR logs
 
 Selecting the appropriate format and then the specific log file in the large window
@@ -1251,7 +1254,7 @@ spreadsheet, statistical, graphics, database and diving software. Within _Subsur
 be used to import information from other sources like spreadsheet-based dive logs and
 some dive computers.
 
-_CSV_ files can be created or edited with a normal text editor. The most important attribute of a
+The most important attribute of a
 _CSV_ file is the _field separator_, the character used to separate fields within a single line. The
 field separator is frequently a comma, a colon, a SPACE character or a TAB character. When exporting data from
 spreadsheet software, the field separator needs to be specified in order to create the _CSV_ file. _CSV_ files are
@@ -1446,7 +1449,7 @@ To do this:
 - Download the app from
   https://play.google.com/store/apps/details?id=org.subsurface[Google Play Store]
   or from
-  http://f-droid.org/repository/browse/?fdfilter=subsurface&fdid=org.subsurface[F-Droid].
+  https://f-droid.org/repository/browse/?fdfilter=subsurface&fdid=org.subsurface[F-Droid].
 
 ===== Using the Subsurface companion app on an Android smartphone
 
@@ -2785,7 +2788,7 @@ _Edit_. This brings up the possibility to _Undo_ or _Redo_ an action.
 === Filtering the dive list
 
 The dives in the *Dive List* panel can be filtered, selecting only some
-of the dives based on their attributes, e.g. dive tags, dive site, dive master, buddy or protective
+of the dives based on their attributes, e.g. dive tags, dive site, divemaster, buddy or protective
 clothing. For instance, filtering lets you list the deep dives at a particular
 dive site, or otherwise the cave dives with a particular buddy.
 
@@ -3018,7 +3021,7 @@ don't need the web access), it’s simple to store
 dive logs in the cloud using several of the existing facilities on the
 Internet.
 For instance
-http://www.dropbox.com/[_Dropbox_]
+https://www.dropbox.com/[_Dropbox_]
 offers a free application that allows
 files on the Dropbox servers to be seen as a local folder on a desktop computer.
 
@@ -3037,7 +3040,7 @@ your _Dropbox_ folder can be accessed seamlessly from the Internet and can
 be accessed anywhere with Internet access. Currently there are no costs
 involved for this service. Dropbox (Windows, Mac
 and Linux) can be installed by accessing the
-http://www.dropbox.com/install[_Install Page on the Dropbox website_]
+https://www.dropbox.com/install[_Install Page on the Dropbox website_]
 . Alternatively you can use _Dropbox_ as a way back up your dive log. To
 Store a dive log on _Dropbox_, select _File ->  Save as_ from the _Subsurface_ main menu,
 navigate to the _Dropbox_ folder and select the _Save_ button. To access the dive log
@@ -3588,7 +3591,7 @@ For more information external to this manual see:
 
  * link:http://www.tek-dive.com/portal/upload/M-Values.pdf[Understanding M-values by Erik Baker, _Immersed_ Vol. 3, No. 3.]
  * link:http://www.rebreatherworld.com/general-and-new-to-rebreather-articles/5037-gradient-factors-for-dummies.html[Gradient factors for dummies, by Kevin Watts]
- * link:http://www.amazon.com/Deco-Divers-Decompression-Theory-Physiology/dp/1905492073/ref=sr_1_1?s=books&ie=UTF8&qid=1403932320&sr=1-1&keywords=deco+for+divers[_Deco for Divers_, by Mark Powell (2008). Aquapress] Southend-on-Sea, UK. ISBN 10: 1-905492-07-3.
+ * link:https://www.amazon.com/Deco-Divers-Decompression-Theory-Physiology/dp/1905492073/ref=sr_1_1?s=books&ie=UTF8&qid=1403932320&sr=1-1&keywords=deco+for+divers[_Deco for Divers_, by Mark Powell (2008). Aquapress] Southend-on-Sea, UK. ISBN 10: 1-905492-07-3.
 An excellent non-technical review that discusses both the Bühlmann deco model and the VPM-B model.
 
 The ascent rate is critical for nitrogen off-gassing at the end of the dive and is specified
@@ -3906,7 +3909,7 @@ dealing with the appropriate operations.
 - _About Subsurface_ - Show a panel with the version number of _Subsurface_ as
   well as licensing information.
 - _Check for updates_ - Find out whether a newer version of Subsurface is available
-  on the http://subsurface-divelog.org/[_Subsurface_ web site].
+  on the https://subsurface-divelog.org/[_Subsurface_ web site].
 - <<S_UserSurvey,_User survey_>>  - Help to make _Subsurface_ even better by taking part in our user survey
   or by completing another survey if your diving habits have changed.
 - _User manual_ - Open a window showing this user manual.
@@ -3937,7 +3940,7 @@ computer prefers (e.g. Bluetooth, USB, infra-red).
 	  devices or any other dive computer using a USB-to-serial interface
 	  based on the Silicon Labs CP2101 or similar chip can be found as
 	  _Mac_OSX_VCP_Driver.zip_ at the
-http://www.silabs.com/support/pages/document-library.aspx?p=Interface&f=USB%20Bridges&pn=CP2101[Silicon Labs document and software repository].
+https://www.silabs.com/support/pages/document-library.aspx?p=Interface&f=USB%20Bridges&pn=CP2101[Silicon Labs document and software repository].
 
 [[S_HowFindDeviceName]]
 === How to Find the Device Name for USB devices and set its write permission
@@ -4571,9 +4574,8 @@ You can change the character back to the default character by following the same
 
 - In Microsoft Windows, click the *Start* button, then select _Control Panel_ from the list on the right-hand side.
 - Open the _Regional and Language Options_ dialog box.
-- Do one of the following:
+- Do the following:
   ** In Windows 7, click the _Formats_ tab, and then click _Customize this format_.
-  ** In Windows XP, click the _Regional Options_ tab, and then click _Customize_.
 - Type a new separator in the _List separator_ box. To use a TAB-delimited file, type the word TAB in the box.
 - Click _OK_ twice.
 
@@ -4672,7 +4674,7 @@ Only a subset of the dive data is exported:
 |location| (*string*) location of the dive
 |duration| (*string*) duration of the dive
 |depth| (*string*) depth of the dive
-|divemaster| (*string*) dive master for the dive
+|divemaster| (*string*) divemaster for the dive
 |buddy| (*string*) buddy for the dive
 |airTemp| (*string*) air temperature of the dive
 |waterTemp| (*string*) water temperature of the dive

@@ -34,7 +34,7 @@
 
 MainTab::MainTab(QWidget *parent) : QTabWidget(parent),
 	weightModel(new WeightModel(this)),
-	cylindersModel(CylindersModel::instance()),
+	cylindersModel(new CylindersModel(this)),
 	extraDataModel(new ExtraDataModel(this)),
 	editMode(NONE),
 	divePictureModel(DivePictureModel::instance()),
@@ -120,6 +120,10 @@ MainTab::MainTab(QWidget *parent) : QTabWidget(parent),
 	ui.diveEquipmentMessage->hide();
 	ui.diveInfoMessage->hide();
 	ui.diveStatisticsMessage->hide();
+	ui.depth->hide();
+	ui.depthLabel->hide();
+	ui.duration->hide();
+	ui.durationLabel->hide();
 	setMinimumHeight(0);
 	setMinimumWidth(0);
 
@@ -427,6 +431,16 @@ void MainTab::refreshDiveInfo()
 	updateDiveInfo();
 }
 
+void MainTab::updateDepthDuration()
+{
+	ui.depth->setVisible(true);
+	ui.depthLabel->setVisible(true);
+	ui.duration->setVisible(true);
+	ui.durationLabel->setVisible(true);
+	ui.duration->setText(QDateTime::fromTime_t(displayed_dive.duration.seconds).toUTC().toString("h:mm"));
+	ui.depth->setText(get_depth_string(displayed_dive.maxdepth, true));
+}
+
 void MainTab::updateDiveInfo(bool clear)
 {
 	ui.location->refreshDiveSiteCache();
@@ -535,6 +549,10 @@ void MainTab::updateDiveInfo(bool clear)
 			ui.notes->setText(currentTrip->notes);
 			clearEquipment();
 			ui.equipmentTab->setEnabled(false);
+			ui.depth->setVisible(false);
+			ui.depthLabel->setVisible(false);
+			ui.duration->setVisible(false);
+			ui.durationLabel->setVisible(false);
 		} else {
 			setTabText(0, tr("Notes"));
 			currentTrip = NULL;
@@ -575,7 +593,14 @@ void MainTab::updateDiveInfo(bool clear)
 			extraDataModel->updateDive();
 			taglist_get_tagstring(displayed_dive.tag_list, buf, 1024);
 			ui.tagWidget->setText(QString(buf));
+			bool isManual = !current_dive || same_string(current_dive->dc.model, "manually added dive");
+			ui.depth->setVisible(isManual);
+			ui.depthLabel->setVisible(isManual);
+			ui.duration->setVisible(isManual);
+			ui.durationLabel->setVisible(isManual);
 		}
+		ui.duration->setText(QDateTime::fromTime_t(displayed_dive.duration.seconds).toUTC().toString("h:mm"));
+		ui.depth->setText(get_depth_string(displayed_dive.maxdepth, true));
 		ui.maximumDepthText->setText(get_depth_string(displayed_dive.maxdepth, true));
 		ui.averageDepthText->setText(get_depth_string(displayed_dive.meandepth, true));
 		ui.maxcnsText->setText(QString("%1\%").arg(displayed_dive.maxcns));
@@ -1117,6 +1142,8 @@ void MainTab::resetPallete()
 	ui.timeEdit->setPalette(p);
 	ui.tagWidget->setPalette(p);
 	ui.diveTripLocation->setPalette(p);
+	ui.duration->setPalette(p);
+	ui.depth->setPalette(p);
 }
 
 #define EDIT_TEXT2(what, text)         \
@@ -1220,6 +1247,43 @@ void MainTab::on_divemaster_textChanged()
 	free(displayed_dive.divemaster);
 	displayed_dive.divemaster = strdup(text.toUtf8().data());
 	markChangedWidget(ui.divemaster);
+}
+
+void MainTab::on_duration_textChanged(const QString &text)
+{
+	if (editMode == IGNORE || acceptingEdit == true)
+		return;
+	// parse this
+	MainWindow::instance()->graphics()->setReplot(false);
+	if (!isEditing())
+		enableEdition();
+	displayed_dive.dc.duration.seconds = parseDurationToSeconds(text);
+	displayed_dive.duration = displayed_dive.dc.duration;
+	displayed_dive.dc.meandepth.mm = 0;
+	displayed_dive.dc.samples = 0;
+	DivePlannerPointsModel::instance()->loadFromDive(&displayed_dive);
+	markChangedWidget(ui.duration);
+	MainWindow::instance()->graphics()->setReplot(true);
+	MainWindow::instance()->graphics()->plotDive();
+
+}
+
+void MainTab::on_depth_textChanged(const QString &text)
+{
+	if (editMode == IGNORE || acceptingEdit == true)
+		return;
+	// don't replot until we set things up the way we want them
+	MainWindow::instance()->graphics()->setReplot(false);
+	if (!isEditing())
+		enableEdition();
+	displayed_dive.dc.maxdepth.mm = parseLengthToMm(text);
+	displayed_dive.maxdepth = displayed_dive.dc.maxdepth;
+	displayed_dive.dc.meandepth.mm = 0;
+	displayed_dive.dc.samples = 0;
+	DivePlannerPointsModel::instance()->loadFromDive(&displayed_dive);
+	markChangedWidget(ui.depth);
+	MainWindow::instance()->graphics()->setReplot(true);
+	MainWindow::instance()->graphics()->plotDive();
 }
 
 void MainTab::on_airtemp_textChanged(const QString &text)

@@ -57,7 +57,9 @@ if (${_index} EQUAL -1)
     Example: -DSUBSURFACE_TARGET_EXECUTABLE=DesktopExecutable")
 endif()
 
-add_definitions(-DSUBSURFACE_SOURCE="${CMAKE_SOURCE_DIR}")
+# SUBSURFACE_SOURCE may be used in subdirectories (tests)
+set(SUBSURFACE_SOURCE ${CMAKE_SOURCE_DIR})
+add_definitions(-DSUBSURFACE_SOURCE="${SUBSURFACE_SOURCE}")
 
 #evenrything's correct, moving on.
 set(CMAKE_MODULE_PATH
@@ -110,6 +112,7 @@ endif()
 include(cmake/Modules/HandleFtdiSupport.cmake)
 include(cmake/Modules/HandleVersionGeneration.cmake)
 include(cmake/Modules/RunOnBuildDir.cmake)
+include(cmake/Modules/cmake_variables_helper.cmake)
 
 pkg_config_library(LIBXML libxml-2.0 REQUIRED)
 pkg_config_library(LIBSQLITE3 sqlite3 REQUIRED)
@@ -421,7 +424,7 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL "Windows")
 	# the script we created above is now added as a command to run at
 	# install time - so this ensures that subsurface.exe has been
 	# built before this is run
-	install(CODE "execute_process(COMMAND ${CMAKE_COMMAND} -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER} -DSUBSURFACE_TARGET=${SUBSURFACE_TARGET} -DSUBSURFACE_SOURCE=${CMAKE_SOURCE_DIR} -DSTAGING=${WINDOWSSTAGING} -P ${CMAKE_SOURCE_DIR}/cmake/Modules/dlllist.cmake)")
+	install(CODE "execute_process(COMMAND ${CMAKE_COMMAND} -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER} -DSUBSURFACE_TARGET=${SUBSURFACE_TARGET} -DSUBSURFACE_SOURCE=${SUBSURFACE_SOURCE} -DSTAGING=${WINDOWSSTAGING} -P ${CMAKE_SOURCE_DIR}/cmake/Modules/dlllist.cmake)")
 
 	# create the subsurface-x.y.z.exe installer - this needs to depend
 	# on the install target but cmake doesn't allow that, so we depend
@@ -465,9 +468,4 @@ if (MAKE_TESTS)
 endif()
 
 # useful for debugging CMake issues
-#
-# message(STATUS "print variables")
-# get_cmake_property(_variableNames VARIABLES)
-# foreach(_variableName ${_variableNames})
-#	message(STATUS "${_variableName}=${${_variableName}}")
-# endforeach()
+# print_all_variables()
