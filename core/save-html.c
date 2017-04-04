@@ -1,5 +1,7 @@
+#ifdef __clang__
 // Clang has a bug on zero-initialization of C structs.
 #pragma clang diagnostic ignored "-Wmissing-field-initializers"
+#endif
 
 #include "save-html.h"
 #include "qthelperfromc.h"
@@ -127,7 +129,7 @@ static void put_cylinder_HTML(struct membuffer *b, struct dive *dive)
 		if (cylinder->type.size.mliter) {
 			int volume = cylinder->type.size.mliter;
 			if (prefs.units.volume == CUFT && cylinder->type.workingpressure.mbar)
-				volume *= bar_to_atm(cylinder->type.workingpressure.mbar / 1000.0);
+				volume = lrint(volume * bar_to_atm(cylinder->type.workingpressure.mbar / 1000.0));
 			put_HTML_volume_units(b, volume, "\"Size\":\"", " \", ");
 		} else {
 			write_attribute(b, "Size", "--", ", ");
@@ -528,7 +530,7 @@ void export_translation(const char *file_name)
 	write_attribute(b, "Back_to_List", translate("gettextFromC", "Back to list"), ", ");
 
 	//dive detailed view
-	write_attribute(b, "Dive_No", translate("gettextFromC", "Dive No."), ", ");
+	write_attribute(b, "Dive_No", translate("gettextFromC", "Dive #"), ", ");
 	write_attribute(b, "Dive_profile", translate("gettextFromC", "Dive profile"), ", ");
 	write_attribute(b, "Dive_information", translate("gettextFromC", "Dive information"), ", ");
 	write_attribute(b, "Dive_equipment", translate("gettextFromC", "Dive equipment"), ", ");

@@ -6,7 +6,7 @@
 
 #include "qt-models/models.h"
 
-PreferencesGraph::PreferencesGraph() : AbstractPreferencesWidget(tr("Graph"), QIcon(":graph"), 5)
+PreferencesGraph::PreferencesGraph() : AbstractPreferencesWidget(tr("Profile"), QIcon(":graph"), 5)
 {
 	ui = new Ui::PreferencesGraph();
 	ui->setupUi(this);
@@ -20,7 +20,8 @@ PreferencesGraph::~PreferencesGraph()
 void PreferencesGraph::refreshSettings()
 {
 	ui->pheThreshold->setValue(prefs.pp_graphs.phe_threshold);
-	ui->po2Threshold->setValue(prefs.pp_graphs.po2_threshold);
+	ui->po2ThresholdMax->setValue(prefs.pp_graphs.po2_threshold_max);
+	ui->po2ThresholdMin->setValue(prefs.pp_graphs.po2_threshold_min);
 	ui->pn2Threshold->setValue(prefs.pp_graphs.pn2_threshold);
 	ui->maxpo2->setValue(prefs.modpO2);
 	ui->red_ceiling->setChecked(prefs.redceiling);
@@ -41,7 +42,7 @@ void PreferencesGraph::refreshSettings()
 	ui->show_ccr_sensors->setChecked(prefs.show_ccr_sensors);
 	ui->defaultSetpoint->setValue((double)prefs.defaultsetpoint / 1000.0);
 	ui->psro2rate->setValue(prefs.o2consumption / 1000.0);
-	ui->pscrfactor->setValue(rint(1000.0 / prefs.pscr_ratio));
+	ui->pscrfactor->setValue(lrint(1000.0 / prefs.pscr_ratio));
 
 	ui->display_unused_tanks->setChecked(prefs.display_unused_tanks);
 	ui->show_average_depth->setChecked(prefs.show_average_depth);
@@ -50,13 +51,14 @@ void PreferencesGraph::refreshSettings()
 void PreferencesGraph::syncSettings()
 {
 	auto general = SettingsObjectWrapper::instance()->general_settings;
-	general->setDefaultSetPoint(rint(ui->defaultSetpoint->value() * 1000.0));
-	general->setO2Consumption(rint(ui->psro2rate->value() *1000.0));
-	general->setPscrRatio(rint(1000.0 / ui->pscrfactor->value()));
+	general->setDefaultSetPoint(lrint(ui->defaultSetpoint->value() * 1000.0));
+	general->setO2Consumption(lrint(ui->psro2rate->value() *1000.0));
+	general->setPscrRatio(lrint(1000.0 / ui->pscrfactor->value()));
 
 	auto pp_gas = SettingsObjectWrapper::instance()->pp_gas;
 	pp_gas->setPheThreshold(ui->pheThreshold->value());
-	pp_gas->setPo2Threshold(ui->po2Threshold->value());
+	pp_gas->setPo2ThresholdMax(ui->po2ThresholdMax->value());
+	pp_gas->setPo2ThresholdMin(ui->po2ThresholdMin->value());
 	pp_gas->setPn2Threshold(ui->pn2Threshold->value());
 
 	auto tech = SettingsObjectWrapper::instance()->techDetails;

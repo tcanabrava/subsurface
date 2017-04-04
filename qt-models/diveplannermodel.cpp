@@ -24,6 +24,7 @@ void DivePlannerPointsModel::removeSelectedPoints(const QVector<int> &rows)
 		divepoints.remove(v2[i]);
 	}
 	endRemoveRows();
+	CylindersModel::instance()->updateTrashIcon();
 }
 
 void DivePlannerPointsModel::createSimpleDive()
@@ -152,15 +153,15 @@ void DivePlannerPointsModel::setupCylinders()
 	CylindersModel::instance()->copyFromDive(&displayed_dive);
 }
 
-// Update the dive's maximum depth.  Returns true if max depth changed
+// Update the dive's maximum depth.  Returns true if max. depth changed
 bool DivePlannerPointsModel::updateMaxDepth()
 {
 	int prevMaxDepth = displayed_dive.maxdepth.mm;
 	displayed_dive.maxdepth.mm = 0;
 	for (int i = 0; i < rowCount(); i++) {
 		divedatapoint p = at(i);
-		if (p.depth > displayed_dive.maxdepth.mm)
-			displayed_dive.maxdepth.mm = p.depth;
+		if (p.depth.mm > displayed_dive.maxdepth.mm)
+			displayed_dive.maxdepth.mm = p.depth.mm;
 	}
 	return (displayed_dive.maxdepth.mm != prevMaxDepth);
 }
@@ -241,7 +242,7 @@ QVariant DivePlannerPointsModel::data(const QModelIndex &index, int role) const
 		case CCSETPOINT:
 			return (double)p.setpoint / 1000;
 		case DEPTH:
-			return (int) rint(get_depth_units(p.depth, NULL, NULL));
+			return (int) lrint(get_depth_units(p.depth.mm, NULL, NULL));
 		case RUNTIME:
 			return p.time / 60;
 		case DURATION:
@@ -314,6 +315,7 @@ bool DivePlannerPointsModel::setData(const QModelIndex &index, const QVariant &v
 		case GAS:
 			if (value.toInt() >= 0 && value.toInt() < MAX_CYLINDERS)
 				p.cylinderid = value.toInt();
+			CylindersModel::instance()->updateTrashIcon();
 			break;
 		}
 		editStop(index.row(), p);
@@ -398,6 +400,20 @@ void DivePlannerPointsModel::setDecoSac(double sac)
 	diveplan.decosac = units_to_sac(sac);
 	auto planner = SettingsObjectWrapper::instance()->planner_settings;
 	planner->setDecoSac(diveplan.decosac);
+	emitDataChanged();
+}
+
+void DivePlannerPointsModel::setSacFactor(double factor)
+{
+	auto planner = SettingsObjectWrapper::instance()->planner_settings;
+	planner->setSacFactor((int) round(factor * 100));
+	emitDataChanged();
+}
+
+void DivePlannerPointsModel::setProblemSolvingTime(int minutes)
+{
+	auto planner = SettingsObjectWrapper::instance()->planner_settings;
+	planner->setProblemSolvingTime(minutes);
 	emitDataChanged();
 }
 
@@ -542,7 +558,7 @@ void DivePlannerPointsModel::setDropStoneMode(bool value)
 		beginInsertRows(QModelIndex(), 0, 0);
 		/* Copy the first current point */
 		divedatapoint p = divepoints.at(0);
-		p.time = p.depth / prefs.descrate;
+		p.time = p.depth.mm / prefs.descrate;
 		divepoints.push_front(p);
 		endInsertRows();
 	}
@@ -609,7 +625,7 @@ int DivePlannerPointsModel::addStop(int milimeters, int seconds, int cylinderid_
 	if (seconds == 0 && milimeters == 0 && row != 0) {
 		/* this is only possible if the user clicked on the 'plus' sign on the DivePoints Table */
 		const divedatapoint t = divepoints.at(lastEnteredPoint());
-		milimeters = t.depth;
+		milimeters = t.depth.mm;
 		seconds = t.time + 600; // 10 minutes.
 		cylinderid = t.cylinderid;
 		ccpoint = t.setpoint;
@@ -648,7 +664,7 @@ int DivePlannerPointsModel::addStop(int milimeters, int seconds, int cylinderid_
 	// add the new stop
 	beginInsertRows(QModelIndex(), row, row);
 	divedatapoint point;
-	point.depth = milimeters;
+	point.depth.mm = milimeters;
 	point.time = seconds;
 	point.cylinderid = cylinderid;
 	point.setpoint = ccpoint;
@@ -718,6 +734,7 @@ void DivePlannerPointsModel::remove(const QModelIndex &index)
 		divepoints.remove(index.row());
 	}
 	endRemoveRows();
+	CylindersModel::instance()->updateTrashIcon();
 }
 
 struct diveplan &DivePlannerPointsModel::getDiveplan()
@@ -793,11 +810,11 @@ void DivePlannerPointsModel::createTemporaryPlan()
 		lastIndex = i;
 		if (i == 0 && mode == PLAN && prefs.drop_stone_mode) {
 			/* Okay, we add a first segment where we go down to depth */
-			plan_add_segment(&diveplan, p.depth / prefs.descrate, p.depth, p.cylinderid, p.setpoint, true);
-			deltaT -= p.depth / prefs.descrate;
+			plan_add_segment(&diveplan, p.depth.mm / prefs.descrate, p.depth.mm, p.cylinderid, p.setpoint, true);
+			deltaT -= p.depth.mm / prefs.descrate;
 		}
 		if (p.entered)
-			plan_add_segment(&diveplan, deltaT, p.depth, p.cylinderid, p.setpoint, true);
+			plan_add_segment(&diveplan, deltaT, p.depth.mm, p.cylinderid, p.setpoint, true);
 	}
 
 	// what does the cache do???
@@ -856,7 +873,7 @@ void DivePlannerPointsModel::createPlan(bool replanCopy)
 	setRecalc(oldRecalc);
 
 	//TODO: C-based function here?
-	bool did_deco = plan(&diveplan, &cache, isPlanner(), true);
+	plan(&diveplan, &cache, isPlanner(), true);
 	free(cache);
 	if (!current_dive || displayed_dive.id != current_dive->id) {
 		// we were planning a new dive, not re-planning an existing on
@@ -877,10 +894,9 @@ void DivePlannerPointsModel::createPlan(bool replanCopy)
 				add_dive_to_trip(copy, current_dive->divetrip);
 			record_dive(copy);
 			QString oldnotes(current_dive->notes);
-			if (oldnotes.indexOf(QString(disclaimer)) >= 0)
-				oldnotes.truncate(oldnotes.indexOf(QString(disclaimer)));
-			if (did_deco)
-				oldnotes.append(displayed_dive.notes);
+			if (oldnotes.indexOf(QString(disclaimer).left(40)) >= 0)
+				oldnotes.truncate(oldnotes.indexOf(QString(displayed_dive.notes).left(40)));
+			oldnotes.append(displayed_dive.notes);
 			displayed_dive.notes = strdup(oldnotes.toUtf8().data());
 		}
 		copy_dive(&displayed_dive, current_dive);

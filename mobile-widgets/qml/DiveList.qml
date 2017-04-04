@@ -1,9 +1,9 @@
 import QtQuick 2.6
-import QtQuick.Controls 1.2
+import QtQuick.Controls 2.0
 import QtQuick.Layouts 1.2
 import QtQuick.Window 2.2
 import QtQuick.Dialogs 1.2
-import org.kde.kirigami 1.0 as Kirigami
+import org.kde.kirigami 2.0 as Kirigami
 import org.subsurfacedivelog.mobile 1.0
 
 Kirigami.ScrollablePage {
@@ -209,14 +209,13 @@ Kirigami.ScrollablePage {
 		}
 	}
 
-	ScrollView {
-		id: startPageWrapper
+	StartPage {
+		id: startPage
 		anchors.fill: parent
 		opacity: credentialStatus === QMLManager.NOCLOUD || (credentialStatus === QMLManager.VALID || credentialStatus === QMLManager.VALID_EMAIL) ? 0 : 1
 		visible: opacity > 0
 		Behavior on opacity { NumberAnimation { duration: Kirigami.Units.shortDuration } }
-		onVisibleChanged: {
-			print("startPageWrapper onVisibleChanged credentialStatus " + credentialStatus + " diveListView.count " + diveListView.count)
+		function setupActions() {
 			if (visible) {
 				page.actions.main = page.saveAction
 				page.actions.right = page.offlineAction
@@ -233,14 +232,11 @@ Kirigami.ScrollablePage {
 				title = qsTr("Dive list")
 			}
 		}
-
-		StartPage {
-			id: startPage
+		onVisibleChanged: {
+			setupActions();
 		}
 		Component.onCompleted: {
-			// initially we are in "no credentials" mode
-			page.actions.main = page.saveAction
-			page.actions.right = page.offlineAction
+			setupActions();
 		}
 	}
 
@@ -259,7 +255,7 @@ Kirigami.ScrollablePage {
 	ListView {
 		id: diveListView
 		anchors.fill: parent
-		opacity: 0.8 - startPageWrapper.opacity
+		opacity: 0.8 - startPage.opacity
 		visible: opacity > 0
 		model: diveModel
 		currentIndex: -1
@@ -275,24 +271,16 @@ Kirigami.ScrollablePage {
 			target: detailsWindow
 			onCurrentIndexChanged: diveListView.currentIndex = detailsWindow.currentIndex
 		}
-		Connections {
-			target: stackView
-			onDepthChanged: {
-				if (stackView.depth === 1) {
-					diveListView.currentIndex = -1;
-				}
-			}
-		}
 	}
 
-	property QtObject addDiveAction: Action {
+	property QtObject addDiveAction: Kirigami.Action {
 		iconName: "list-add"
 		onTriggered: {
 			startAddDive()
 		}
 	}
 
-	property QtObject saveAction: Action {
+	property QtObject saveAction: Kirigami.Action {
 		iconName: "document-save"
 		onTriggered: {
 			Qt.inputMethod.hide()
@@ -300,7 +288,7 @@ Kirigami.ScrollablePage {
 		}
 	}
 
-	property QtObject offlineAction: Action {
+	property QtObject offlineAction: Kirigami.Action {
 		iconName: "qrc:/qml/nocloud.svg"
 		onTriggered: {
 			manager.syncToCloud = false
@@ -309,11 +297,11 @@ Kirigami.ScrollablePage {
 	}
 
 	onBackRequested: {
-		if (startPageWrapper.visible && diveListView.count > 0 && manager.credentialStatus !== QMLManager.INVALID) {
+		if (startPage.visible && diveListView.count > 0 && manager.credentialStatus !== QMLManager.INVALID) {
 			manager.credentialStatus = oldStatus
 			event.accepted = true;
 		}
-		if (!startPageWrapper.visible) {
+		if (!startPage.visible) {
 			if (Qt.platform.os != "ios") {
 				manager.quit()
 			}

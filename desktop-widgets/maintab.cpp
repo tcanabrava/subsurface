@@ -629,7 +629,7 @@ void MainTab::updateDiveInfo(bool clear)
 				continue;
 			volumes.append(get_volume_string(gases[i], true));
 			if (duration[i]) {
-				sac.mliter = gases[i].mliter / (depth_to_atm(mean[i], &displayed_dive) * duration[i] / 60);
+				sac.mliter = lrint(gases[i].mliter / (depth_to_atm(mean[i], &displayed_dive) * duration[i] / 60));
 				SACs.append(get_volume_string(sac, true).append(tr("/min")));
 			}
 		}
@@ -737,7 +737,7 @@ void MainTab::updateDiveInfo(bool clear)
 			if (he_tot.mliter && o2_tot.mliter)
 				gasUsedString.append(tr(" and "));
 			if (o2_tot.mliter)
-				gasUsedString.append(QString("O2: %2\n").arg(get_volume_string(o2_tot, true)));
+				gasUsedString.append(QString("O₂: %2\n").arg(get_volume_string(o2_tot, true)));
 		}
 		ui.gasConsumption->setText(gasUsedString);
 		if(ui.locationTags->text().isEmpty())
@@ -1086,7 +1086,7 @@ void MainTab::acceptChanges()
 	}
 	if (editMode == ADD || editMode == MANUALLY_ADDED_DIVE) {
 		// we just added or edited the dive, let fixup_dive() make
-		// sure we get the max depth right
+		// sure we get the max. depth right
 		current_dive->maxdepth.mm = current_dc->maxdepth.mm = 0;
 		fixup_dive(current_dive);
 		set_dive_nr_for_current_dive();

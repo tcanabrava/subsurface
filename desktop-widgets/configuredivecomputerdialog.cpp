@@ -494,11 +494,11 @@ void ConfigureDiveComputerDialog::populateDeviceDetailsOSTC3()
 	deviceDetails->dynamicAscendRate = ui.dynamicAscendRate->isChecked();
 	deviceDetails->graphicalSpeedIndicator = ui.graphicalSpeedIndicator->isChecked();
 	deviceDetails->alwaysShowppO2 = ui.alwaysShowppO2->isChecked();
-	deviceDetails->tempSensorOffset = ui.tempSensorOffsetDoubleSpinBox->value() * 10;
+	deviceDetails->tempSensorOffset = lrint(ui.tempSensorOffsetDoubleSpinBox->value() * 10);
 	deviceDetails->safetyStopLength = ui.safetyStopLengthSpinBox->value();
-	deviceDetails->safetyStopStartDepth = ui.safetyStopStartDepthDoubleSpinBox->value() * 10;
-	deviceDetails->safetyStopEndDepth = ui.safetyStopEndDepthDoubleSpinBox->value() * 10;
-	deviceDetails->safetyStopResetDepth = ui.safetyStopResetDepthDoubleSpinBox->value() * 10;
+	deviceDetails->safetyStopStartDepth = lrint(ui.safetyStopStartDepthDoubleSpinBox->value() * 10);
+	deviceDetails->safetyStopEndDepth = lrint(ui.safetyStopEndDepthDoubleSpinBox->value() * 10);
+	deviceDetails->safetyStopResetDepth = lrint(ui.safetyStopResetDepthDoubleSpinBox->value() * 10);
 
 	//set gas values
 	gas gas1;
@@ -576,7 +576,7 @@ void ConfigureDiveComputerDialog::populateDeviceDetailsOSTC3()
 	deviceDetails->dil4 = dil4;
 	deviceDetails->dil5 = dil5;
 
-	//set set point details
+	//set setpoint details
 	setpoint sp1;
 	setpoint sp2;
 	setpoint sp3;
@@ -612,7 +612,7 @@ void ConfigureDiveComputerDialog::populateDeviceDetailsOSTC()
 	deviceDetails->desaturation = ui.desaturationSpinBox_3->value();
 	deviceDetails->lastDeco = ui.lastDecoSpinBox_3->value();
 	deviceDetails->samplingRate = ui.samplingRateSpinBox_3->value();
-	deviceDetails->salinity = ui.salinityDoubleSpinBox_3->value() * 100;
+	deviceDetails->salinity = lrint(ui.salinityDoubleSpinBox_3->value() * 100);
 	deviceDetails->dateFormat = ui.dateFormatComboBox_3->currentIndex();
 	deviceDetails->syncTime = ui.dateTimeSyncCheckBox_3->isChecked();
 	deviceDetails->safetyStop = ui.safetyStopCheckBox_3->isChecked();
@@ -629,9 +629,9 @@ void ConfigureDiveComputerDialog::populateDeviceDetailsOSTC()
 	deviceDetails->decoGasConsumption = ui.decoGasConsumption_3->value();
 	deviceDetails->graphicalSpeedIndicator = ui.graphicalSpeedIndicator_3->isChecked();
 	deviceDetails->safetyStopLength = ui.safetyStopLengthSpinBox_3->value();
-	deviceDetails->safetyStopStartDepth = ui.safetyStopStartDepthDoubleSpinBox_3->value() * 10;
-	deviceDetails->safetyStopEndDepth = ui.safetyStopEndDepthDoubleSpinBox_3->value() * 10;
-	deviceDetails->safetyStopResetDepth = ui.safetyStopResetDepthDoubleSpinBox_3->value() * 10;
+	deviceDetails->safetyStopStartDepth = lrint(ui.safetyStopStartDepthDoubleSpinBox_3->value() * 10);
+	deviceDetails->safetyStopEndDepth = lrint(ui.safetyStopEndDepthDoubleSpinBox_3->value() * 10);
+	deviceDetails->safetyStopResetDepth = lrint(ui.safetyStopResetDepthDoubleSpinBox_3->value() * 10);
 
 	//set gas values
 	gas gas1;
@@ -709,7 +709,7 @@ void ConfigureDiveComputerDialog::populateDeviceDetailsOSTC()
 	deviceDetails->dil4 = dil4;
 	deviceDetails->dil5 = dil5;
 
-	//set set point details
+	//set setpoint details
 	setpoint sp1;
 	setpoint sp2;
 	setpoint sp3;
@@ -750,7 +750,7 @@ void ConfigureDiveComputerDialog::populateDeviceDetailsSuuntoVyper()
 	deviceDetails->lightEnabled = ui.lightCheckBox->isChecked();
 	deviceDetails->light = ui.lightSpinBox->value();
 	deviceDetails->alarmDepthEnabled = ui.alarmDepthCheckBox->isChecked();
-	deviceDetails->alarmDepth = units_to_depth(ui.alarmDepthDoubleSpinBox->value());
+	deviceDetails->alarmDepth = units_to_depth(ui.alarmDepthDoubleSpinBox->value()).mm;
 	deviceDetails->alarmTimeEnabled = ui.alarmTimeCheckBox->isChecked();
 	deviceDetails->alarmTime = ui.alarmTimeSpinBox->value();
 }
@@ -945,23 +945,23 @@ void ConfigureDiveComputerDialog::reloadValuesOSTC3()
 	ui.ostc3DilTable->setItem(4, 3, new QTableWidgetItem(QString::number(deviceDetails->dil5.type)));
 	ui.ostc3DilTable->setItem(4, 4, new QTableWidgetItem(QString::number(deviceDetails->dil5.depth)));
 
-	//load set point 1 values
+	//load setpoint 1 values
 	ui.ostc3SetPointTable->setItem(0, 1, new QTableWidgetItem(QString::number(deviceDetails->sp1.sp)));
 	ui.ostc3SetPointTable->setItem(0, 2, new QTableWidgetItem(QString::number(deviceDetails->sp1.depth)));
 
-	//load set point 2 values
+	//load setpoint 2 values
 	ui.ostc3SetPointTable->setItem(1, 1, new QTableWidgetItem(QString::number(deviceDetails->sp2.sp)));
 	ui.ostc3SetPointTable->setItem(1, 2, new QTableWidgetItem(QString::number(deviceDetails->sp2.depth)));
 
-	//load set point 3 values
+	//load setpoint 3 values
 	ui.ostc3SetPointTable->setItem(2, 1, new QTableWidgetItem(QString::number(deviceDetails->sp3.sp)));
 	ui.ostc3SetPointTable->setItem(2, 2, new QTableWidgetItem(QString::number(deviceDetails->sp3.depth)));
 
-	//load set point 4 values
+	//load setpoint 4 values
 	ui.ostc3SetPointTable->setItem(3, 1, new QTableWidgetItem(QString::number(deviceDetails->sp4.sp)));
 	ui.ostc3SetPointTable->setItem(3, 2, new QTableWidgetItem(QString::number(deviceDetails->sp4.depth)));
 
-	//load set point 5 values
+	//load setpoint 5 values
 	ui.ostc3SetPointTable->setItem(4, 1, new QTableWidgetItem(QString::number(deviceDetails->sp5.sp)));
 	ui.ostc3SetPointTable->setItem(4, 2, new QTableWidgetItem(QString::number(deviceDetails->sp5.depth)));
 }
@@ -1072,23 +1072,23 @@ setNumberOfDives
 	ui.ostcDilTable->setItem(4, 3, new QTableWidgetItem(QString::number(deviceDetails->dil5.type)));
 	ui.ostcDilTable->setItem(4, 4, new QTableWidgetItem(QString::number(deviceDetails->dil5.depth)));
 
-	//load set point 1 values
+	//load setpoint 1 values
 	ui.ostcSetPointTable->setItem(0, 1, new QTableWidgetItem(QString::number(deviceDetails->sp1.sp)));
 	ui.ostcSetPointTable->setItem(0, 2, new QTableWidgetItem(QString::number(deviceDetails->sp1.depth)));
 
-	//load set point 2 values
+	//load setpoint 2 values
 	ui.ostcSetPointTable->setItem(1, 1, new QTableWidgetItem(QString::number(deviceDetails->sp2.sp)));
 	ui.ostcSetPointTable->setItem(1, 2, new QTableWidgetItem(QString::number(deviceDetails->sp2.depth)));
 
-	//load set point 3 values
+	//load setpoint 3 values
 	ui.ostcSetPointTable->setItem(2, 1, new QTableWidgetItem(QString::number(deviceDetails->sp3.sp)));
 	ui.ostcSetPointTable->setItem(2, 2, new QTableWidgetItem(QString::number(deviceDetails->sp3.depth)));
 
-	//load set point 4 values
+	//load setpoint 4 values
 	ui.ostcSetPointTable->setItem(3, 1, new QTableWidgetItem(QString::number(deviceDetails->sp4.sp)));
 	ui.ostcSetPointTable->setItem(3, 2, new QTableWidgetItem(QString::number(deviceDetails->sp4.depth)));
 
-	//load set point 5 values
+	//load setpoint 5 values
 	ui.ostcSetPointTable->setItem(4, 1, new QTableWidgetItem(QString::number(deviceDetails->sp5.sp)));
 	ui.ostcSetPointTable->setItem(4, 2, new QTableWidgetItem(QString::number(deviceDetails->sp5.depth)));
 }

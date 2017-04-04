@@ -1,5 +1,7 @@
+#ifdef __clang__
 // Clang has a bug on zero-initialization of C structs.
 #pragma clang diagnostic ignored "-Wmissing-field-initializers"
+#endif
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -150,7 +152,7 @@ static dtrakheader read_file_header(FILE *archivo)
 		return fileheader;
 	}
 	if (two_bytes_to_int(lector[0], lector[1]) != 0xA100) {
-		report_error(translate("gettextFromC", "Error: the file does not appear to be a DATATRAK divelog"));
+		report_error(translate("gettextFromC", "Error: the file does not appear to be a DATATRAK dive log"));
 		free(lector);
 		return fileheader;
 	}
@@ -384,7 +386,7 @@ bool dt_dive_parser(FILE *archivo, struct dive *dt_dive)
 	 */
 	read_bytes(2);
 	if (tmp_2bytes != 0x7FFF && dt_dive->cylinder[0].type.size.mliter)
-		dt_dive->cylinder[0].gas_used.mliter = dt_dive->cylinder[0].type.size.mliter * (tmp_2bytes / 100.0);
+		dt_dive->cylinder[0].gas_used.mliter = lrint(dt_dive->cylinder[0].type.size.mliter * (tmp_2bytes / 100.0));
 
 	/*
 	 * Dive Type 1 -  Bit table. Subsurface don't have this record, but
@@ -625,7 +627,7 @@ bool dt_dive_parser(FILE *archivo, struct dive *dt_dive)
 			read_bytes(1);
 			if (is_nitrox) {
 				dt_dive->cylinder[0].gasmix.o2.permille =
-					(tmp_1byte & 0x0F ? 20.0 + 2 * (tmp_1byte & 0x0F) : 21.0) * 10;
+					lrint((tmp_1byte & 0x0F ? 20.0 + 2 * (tmp_1byte & 0x0F) : 21.0) * 10);
 			} else {
 				dt_dive->cylinder[0].gasmix.o2.permille = tmp_1byte * 10;
 				read_bytes(1)  // Jump over one byte, unknown use

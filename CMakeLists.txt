@@ -86,6 +86,15 @@ elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "AppleClang")
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
 	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu99")
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+
+	# Warn about possible float conversion errors
+	# Use NOT VERSION_LESS since VERSION_GREATER_EQUAL is not available
+	# in currently used cmake version.
+	if (NOT CMAKE_CXX_COMPILER_VERSION VERSION_LESS "4.9.0")
+		set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wfloat-conversion")
+		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wfloat-conversion")
+	endif()
+
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
   # using Intel C++
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
@@ -148,7 +157,9 @@ elseif(${SUBSURFACE_TARGET_EXECUTABLE} MATCHES "MobileExecutable")
 		set(SUBSURFACE_TARGET subsurface-mobile)
 	endif()
 	list(APPEND QT_EXTRA_COMPONENTS Quick)
+	list(APPEND QT_EXTRA_COMPONENTS QuickControls2)
 	list(APPEND QT_EXTRA_LIBRARIES Qt5::Quick)
+	list(APPEND QT_EXTRA_LIBRARIES Qt5::QuickControls2)
 	add_definitions(-DSUBSURFACE_MOBILE)
 endif()
 
@@ -241,6 +252,7 @@ if(${SUBSURFACE_TARGET_EXECUTABLE} MATCHES "MobileExecutable")
 		mobile-widgets/qmlmanager.cpp
 		mobile-widgets/qmlprofile.cpp
 		mobile-widgets/qml/kirigami/src/kirigamiplugin.cpp
+		mobile-widgets/qml/kirigami/src/settings.cpp
 		mobile-widgets/qml/kirigami/src/enums.cpp
 		subsurface-mobile-main.cpp
 		subsurface-mobile-helper.cpp

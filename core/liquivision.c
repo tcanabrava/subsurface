@@ -54,7 +54,7 @@ static int handle_event_ver3(int code, const unsigned char *ps, unsigned int ps_
 		break;
 	case 0x0008:
 		// 4 byte time
-		// 2 byte gas set point 2
+		// 2 byte gas setpoint 2
 		skip = 6;
 		break;
 	case 0x000f:
@@ -234,9 +234,9 @@ static void parse_dives (int log_version, const unsigned char *buf, unsigned int
 			// Xeo, with CNS and OTU
 			start_cns = *(float *) (buf + ptr);
 			ptr += 4;
-			dive->cns = *(float *) (buf + ptr);	// end cns
+			dive->cns = lrintf(*(float *) (buf + ptr));	// end cns
 			ptr += 4;
-			dive->otu = *(float *) (buf + ptr);
+			dive->otu = lrintf(*(float *) (buf + ptr));
 			ptr += 4;
 			dive_mode = *(buf + ptr++);	// 0=Deco, 1=Gauge, 2=None
 			algorithm = *(buf + ptr++);	// 0=ZH-L16C+GF

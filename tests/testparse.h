@@ -11,7 +11,7 @@ private slots:
 	void init();
 	void cleanup();
 
-	int parseCSV();
+	int parseCSV(int, std::string);
 	int parseDivingLog();
 	int parseV2NoQuestion();
 	int parseV3();
@@ -22,6 +22,10 @@ private slots:
 	void testParseNewFormat();
 	void testParseDLD();
 	void testParseMerge();
+
+	int parseCSVmanual(int, std::string);
+	void exportCSVDiveDetails();
+	void testExport();
 
 private:
 	sqlite3 *_sqlite3_handle = NULL;

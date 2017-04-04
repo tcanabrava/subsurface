@@ -243,16 +243,20 @@ double get_volume_units(unsigned int ml, int *frac, const char **units)
 int units_to_sac(double volume)
 {
 	if (get_units()->volume == CUFT)
-		return rint(cuft_to_l(volume) * 1000.0);
+		return lrint(cuft_to_l(volume) * 1000.0);
 	else
-		return rint(volume * 1000);
+		return lrint(volume * 1000);
 }
 
-unsigned int units_to_depth(double depth)
+depth_t units_to_depth(double depth)
 {
-	if (get_units()->length == METERS)
-		return rint(depth * 1000);
-	return feet_to_mm(depth);
+	depth_t internaldepth;
+	if (get_units()->length == METERS) {
+		internaldepth.mm = lrint(depth * 1000);
+	} else {
+		internaldepth.mm = feet_to_mm(depth);
+	}
+	return internaldepth;
 }
 
 double get_depth_units(int mm, int *frac, const char **units)
@@ -659,7 +663,7 @@ void finish_sample(struct divecomputer *dc)
  * new ones.
  *
  * Why? Because a dive computer may well actually track the
- * max depth and mean depth at finer granularity than the
+ * max. depth and mean depth at finer granularity than the
  * samples it stores. So it's possible that the max and mean
  * have been reported more correctly originally.
  *
@@ -872,7 +876,7 @@ int gas_volume(cylinder_t *cyl, pressure_t p)
 {
 	double bar = p.mbar / 1000.0;
 	double z_factor = gas_compressibility_factor(&cyl->gasmix, bar);
-	return rint(cyl->type.size.mliter * bar_to_atm(bar) / z_factor);
+	return lrint(cyl->type.size.mliter * bar_to_atm(bar) / z_factor);
 }
 
 /*
@@ -1019,7 +1023,7 @@ static void match_standard_cylinder(cylinder_type_t *type)
 	default:
 		return;
 	}
-	len = snprintf(buffer, sizeof(buffer), fmt, (int)rint(cuft));
+	len = snprintf(buffer, sizeof(buffer), fmt, (int)lrint(cuft));
 	p = malloc(len + 1);
 	if (!p)
 		return;
@@ -1056,7 +1060,7 @@ static void sanitize_cylinder_type(cylinder_type_t *type)
 		volume_of_air = cuft_to_l(type->size.mliter);
 		/* milliliters at 1 atm: not corrected for compressibility! */
 		volume = volume_of_air / bar_to_atm(bar);
-		type->size.mliter = rint(volume);
+		type->size.mliter = lrint(volume);
 	}
 
 	/* Ok, we have both size and pressure: try to match a description */
@@ -1838,35 +1842,6 @@ static void merge_events(struct divecomputer *res, struct divecomputer *src1, st
 	}
 }
 
-/* Pick whichever has any info (if either). Prefer 'a' */
-static void merge_cylinder_type(cylinder_type_t *src, cylinder_type_t *dst)
-{
-	if (!dst->size.mliter)
-		dst->size.mliter = src->size.mliter;
-	if (!dst->workingpressure.mbar)
-		dst->workingpressure.mbar = src->workingpressure.mbar;
-	if (!dst->description) {
-		dst->description = src->description;
-		src->description = NULL;
-	}
-}
-
-static void merge_cylinder_mix(struct gasmix *src, struct gasmix *dst)
-{
-	if (!dst->o2.permille)
-		*dst = *src;
-}
-
-static void merge_cylinder_info(cylinder_t *src, cylinder_t *dst)
-{
-	merge_cylinder_type(&src->type, &dst->type);
-	merge_cylinder_mix(&src->gasmix, &dst->gasmix);
-	MERGE_MAX(dst, dst, src, start.mbar);
-	MERGE_MIN(dst, dst, src, end.mbar);
-	if (!dst->cylinder_use)
-		dst->cylinder_use = src->cylinder_use;
-}
-
 static void merge_weightsystem_info(weightsystem_t *res, weightsystem_t *a, weightsystem_t *b)
 {
 	if (!a->weight.grams)
@@ -1943,13 +1918,6 @@ extern void fill_pressures(struct gas_pressures *pressures, const double amb_pre
 			pressures->n2 = (1000 - get_o2(mix) - get_he(mix)) / 1000.0 * amb_pressure;
 		}
 	}
-}
-
-static int find_cylinder_match(cylinder_t *cyl, cylinder_t array[], unsigned int used)
-{
-	if (cylinder_nodata(cyl))
-		return -1;
-	return find_best_gasmix_match(&cyl->gasmix, array, used);
 }
 
 /* Force an initial gaschange event to the (old) gas #0 */
@@ -2104,7 +2072,7 @@ static void merge_one_cylinder(cylinder_t *a, cylinder_t *b)
  */
 static void merge_cylinders(struct dive *res, struct dive *a, struct dive *b)
 {
-	int i, last, renumber = 0;
+	int i, renumber = 0;
 	int mapping[MAX_CYLINDERS];
 	unsigned int used_in_a = 0, used_in_b = 0, matched = 0;
 
@@ -2436,7 +2404,7 @@ static int find_sample_offset(struct divecomputer *a, struct divecomputer *b)
  * difference?
  *
  * So for example, we'd expect different dive computers to give different
- * max depth readings. You might have them on different arms, and they
+ * max. depth readings. You might have them on different arms, and they
  * have different pressure sensors and possibly different ideas about
  * water salinity etc.
  *
@@ -3584,11 +3552,11 @@ void average_max_depth(struct diveplan *dive, int *avg_depth, int *max_depth)
 	while (dp) {
 		if (dp->time) {
 			/* Ignore gas indication samples */
-			integral += (dp->depth + last_depth) * (dp->time - last_time) / 2;
+			integral += (dp->depth.mm + last_depth) * (dp->time - last_time) / 2;
 			last_time = dp->time;
-			last_depth = dp->depth;
-			if (dp->depth > *max_depth)
-				*max_depth = dp->depth;
+			last_depth = dp->depth.mm;
+			if (dp->depth.mm > *max_depth)
+				*max_depth = dp->depth.mm;
 		}
 		dp = dp->next;
 	}

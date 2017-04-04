@@ -3489,7 +3489,7 @@ image::images/Pref4_f23.jpg["FIGURE: Preferences Graph page", align="center"]
 
 [[GradientFactors_Ref]]
 
-*** Bühlmann: Set the _gradient factors_ (GFlow and GFHigh) for calculcating the deco ceiling following
+*** Bühlmann: Set the _gradient factors_ (GFLow and GFHigh) for calculcating the deco ceiling following
    the ZH-L16 algorithm. GF_Low is the gradient factor at depth and GF_High is used at the surface.
    At intermediate depths gradient factors between GF_Low and GF_High are used.
    Gradient factors add conservatism to nitrogen and helium exposure during a dive, in a
@@ -3498,7 +3498,7 @@ image::images/Pref4_f23.jpg["FIGURE: Preferences Graph page", align="center"]
    respect to inert gas loading and the deeper the ceilings are. Gradient
    factors of 20/60 are considered conservative and values of 70/90 are considered
    harsh.
-   In addition decide whether to check the _GFLow at max depth_ box. If checked, GF_Low is used for the
+   In addition decide whether to check the _GFLow at max. depth_ box. If checked, GF_Low is used for the
    deepest dive depth and linearly increased up to the GF_High value at the surface. If unchecked,
    GF_Low is used between the deepest dive depth and the first deco stop, after which the
    gradient factor linearly increases up to the GF_High value at the surface. For more information see:
@@ -3684,7 +3684,7 @@ image::images/PlannerWindow1_f20.jpg["FIGURE: Dive planner startup window", alig
     values into the table marked _Dive planner points_. The first line of the
     table represents the duration and the final depth of the descent from the
     surface. Subsequent segments describe the bottom phase of the dive.  The _CC
-    set point_ column is only relevant for closed circuit divers.  The ascent is
+    setpoint_ column is only relevant for closed circuit divers.  The ascent is
     usually not specified because this is what the planner is supposed to
     calculate.  Add additional segments to the profile by selecting the "+" icon
     at the top right hand of the table. Segments entered into the _Dive planner
@@ -3777,7 +3777,7 @@ using multiple breathing gases.  These dives are planned in three stages:
 *a) Nitrogen management*: This is done by specifying the rates for descent and ascent,
 as well as the deco model (GFLow, GFHigh or Conservatism level) under the headings _Rates_ and _Planning_
 to the bottom left of the planning screen. Two deco models are supported the Bühlmann model and the VPM-B
-model. Select one of the two models. When selecting the Bühlmann model, the gradient factors (GFhigh and GFlow
+model. Select one of the two models. When selecting the Bühlmann model, the gradient factors (GFHigh and GFLow
 need to be specified. Initially, the GFHigh and GFLow values in the _Preferences_
 panel of _Subsurface_ is used. If these are changed within the planner (see _Gas Options_ within
 the planner), the new values are
@@ -3819,7 +3819,7 @@ maximal descent rate specified in the _Rates_ section of the dive setup.
 pressure for oxygen needs to be specified for the
 bottom part of the dive (_bottom po2_) as well as for the decompression part of the dive (_deco po2_).
 Commonly used values are 1.4 bar for the bottom part of the dive and 1.6 bar for any decompression
-stages. Normally, a partial pressure of 1.6 bar is not exceeded. PO2 settings and the depth at which switching to a gas takes place can also be edited in the
+stages. Normally, a partial pressure of 1.6 bar is not exceeded. pO₂ settings and the depth at which switching to a gas takes place can also be edited in the
 _Available Gases_ dialog. Normally the planner decides on switching to a new gas when, during
 ascent, the partial pressure of the new gas has decreased to 1.6 bar.
 
@@ -3875,7 +3875,7 @@ switches will be suggested during the ascent to the surface. These changes
 can be deleted by right-clicking the gas change and manually creating a gas
 change by right-clicking on the appropriate waypoint.
 
-A non-zero value in the "CC set point" column of the table of dive planner
+A non-zero value in the "CC setpoint" column of the table of dive planner
 points indicates a valid setpoint for oxygen partial pressure and that the
 segment is dived using a closed circuit rebreather (CCR). If the last
 manually entered segment is a CCR segment, the decompression phase is

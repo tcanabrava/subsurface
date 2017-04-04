@@ -14,7 +14,8 @@ typedef struct
 	short po2;
 	short pn2;
 	short phe;
-	double po2_threshold;
+	double po2_threshold_min;
+	double po2_threshold_max;
 	double pn2_threshold;
 	double phe_threshold;
 } partial_pressure_graphs_t;
@@ -105,6 +106,8 @@ struct preferences {
 	int ascratestops;
 	int ascratelast6m;
 	int descrate;
+	int sacfactor;
+	int problemsolvingtime;
 	int bottompo2;
 	int decopo2;
 	enum deco_mode display_deco_mode;

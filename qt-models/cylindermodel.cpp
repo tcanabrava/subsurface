@@ -20,7 +20,7 @@ CylindersModel::CylindersModel(QObject *parent) :
 
 QVariant CylindersModel::headerData(int section, Qt::Orientation orientation, int role) const
 {
-	if (role == Qt::DisplayRole && in_planner() && section == WORKINGPRESS)
+	if (role == Qt::DisplayRole && orientation == Qt::Horizontal && in_planner() && section == WORKINGPRESS)
 		return tr("Start press.");
 	else
 		return CleanerTableModel::headerData(section, orientation, role);
@@ -134,8 +134,12 @@ QVariant CylindersModel::data(const QModelIndex &index, int role) const
 
 	if (!index.isValid() || index.row() >= MAX_CYLINDERS)
 		return ret;
-
+	
+	int mapping[MAX_CYLINDERS];
+	int same_gas = -1;
 	cylinder_t *cyl = &displayed_dive.cylinder[index.row()];
+	struct gasmix *mygas = &cyl->gasmix;
+	
 	switch (role) {
 	case Qt::BackgroundRole: {
 		switch (index.column()) {
@@ -143,8 +147,11 @@ QVariant CylindersModel::data(const QModelIndex &index, int role) const
 		// seem implausible
 		case START:
 		case END:
-			if ((cyl->start.mbar && !cyl->end.mbar) ||
-					(cyl->end.mbar && cyl->start.mbar <= cyl->end.mbar))
+			pressure_t startp, endp;
+			startp = cyl->start.mbar ? cyl->start : cyl->sample_start;
+			endp = cyl->end.mbar ? cyl->end : cyl->sample_end;
+			if ((startp.mbar && !endp.mbar) ||
+					(endp.mbar && startp.mbar <= endp.mbar))
 				ret = REDORANGE1_HIGH_TRANS;
 			break;
 		}
@@ -153,6 +160,7 @@ QVariant CylindersModel::data(const QModelIndex &index, int role) const
 	case Qt::FontRole: {
 		QFont font = defaultModelFont();
 		switch (index.column()) {
+		// if we don't have manually set pressure data use italic font
 		case START:
 			font.setItalic(!cyl->start.mbar);
 			break;
@@ -207,14 +215,14 @@ QVariant CylindersModel::data(const QModelIndex &index, int role) const
 			} else {
 				pressure_t modpO2;
 				modpO2.mbar = prefs.bottompo2;
-				ret = get_depth_string(gas_mod(&cyl->gasmix, modpO2, &displayed_dive, M_OR_FT(1,1)));
+				ret = get_depth_string(gas_mod(&cyl->gasmix, modpO2, &displayed_dive, M_OR_FT(1,1)), true);
 			}
 			break;
 		case MND:
 			if (cyl->bestmix_he)
 				ret = QString("*");
 			else
-				ret = get_depth_string(gas_mnd(&cyl->gasmix, prefs.bestmixend, &displayed_dive, M_OR_FT(1,1)));
+				ret = get_depth_string(gas_mnd(&cyl->gasmix, prefs.bestmixend, &displayed_dive, M_OR_FT(1,1)), true);
 			break;
 		case USE:
 			ret = gettextFromC::instance()->trGettext(cylinderuse_text[cyl->cylinder_use]);
@@ -222,26 +230,48 @@ QVariant CylindersModel::data(const QModelIndex &index, int role) const
 		}
 		break;
 	case Qt::DecorationRole:
-		if (index.column() == REMOVE) {
-			if (rowCount() > 1)
-				ret = trashIcon();
-			else
-				ret = trashForbiddenIcon();
-		}
-		break;
 	case Qt::SizeHintRole:
 		if (index.column() == REMOVE) {
-			if (rowCount() > 1)
-				ret = trashIcon();
-			else
-				ret = trashForbiddenIcon();
+			same_gas = -1;
+			for (int i = 0; i < MAX_CYLINDERS; i++) {
+				mapping[i] = i;
+				if (i == index.row() || cylinder_none(&displayed_dive.cylinder[i]))
+					continue;
+				struct gasmix *gas2 = &displayed_dive.cylinder[i].gasmix;
+				if (gasmix_distance(mygas, gas2) == 0 && is_cylinder_used(&displayed_dive, i))
+					same_gas = i;
+			}
+			if (same_gas == -1 &&
+				((DivePlannerPointsModel::instance()->currentMode() != DivePlannerPointsModel::NOTHING &&
+				DivePlannerPointsModel::instance()->tankInUse(index.row())) ||
+				(DivePlannerPointsModel::instance()->currentMode() == DivePlannerPointsModel::NOTHING &&
+				is_cylinder_used(&displayed_dive, index.row())))) {
+					ret = trashForbiddenIcon();
+			}
+			else ret = trashIcon();
 		}
 		break;
 
 	case Qt::ToolTipRole:
 		switch (index.column()) {
 		case REMOVE:
-			ret = tr("Clicking here will remove this cylinder.");
+			same_gas = -1;
+			for (int i = 0; i < MAX_CYLINDERS; i++) {
+				mapping[i] = i;
+				if (i == index.row() || cylinder_none(&displayed_dive.cylinder[i]))
+					continue;
+				struct gasmix *gas2 = &displayed_dive.cylinder[i].gasmix;
+				if (gasmix_distance(mygas, gas2) == 0 && is_cylinder_used(&displayed_dive, i))
+					same_gas = i;
+			}
+			if (same_gas == -1 &&
+				((DivePlannerPointsModel::instance()->currentMode() != DivePlannerPointsModel::NOTHING &&
+				DivePlannerPointsModel::instance()->tankInUse(index.row())) ||
+				(DivePlannerPointsModel::instance()->currentMode() == DivePlannerPointsModel::NOTHING &&
+				is_cylinder_used(&displayed_dive, index.row())))) {
+					ret = tr("This gas is in use. Only cylinders that are not used in the dive can be removed.");
+			}
+			else ret = tr("Clicking here will remove this cylinder.");
 			break;
 		case TYPE:
 		case SIZE:
@@ -256,10 +286,10 @@ QVariant CylindersModel::data(const QModelIndex &index, int role) const
 			ret = tr("Switch depth for deco gas. Calculated using Deco pO₂ preference, unless set manually.");
 			break;
 		case MOD:
-			ret = tr("Calculated using Bottom pO₂ preference. Setting MOD adjusts O₂%, set to '*' for best O₂% for max depth.");
+			ret = tr("Calculated using Bottom pO₂ preference. Setting MOD adjusts O₂%, set to '*' for best O₂% for max. depth.");
 			break;
 		case MND:
-			ret = tr("Calculated using Best Mix END preference. Setting MND adjusts He%, set to '*' for best He% for max depth.");
+			ret = tr("Calculated using Best Mix END preference. Setting MND adjusts He%, set to '*' for best He% for max. depth.");
 			break;
 		}
 		break;
@@ -383,7 +413,7 @@ bool CylindersModel::setData(const QModelIndex &index, const QVariant &value, in
 		if (CHANGED()) {
 			if (QString::compare(vString.toUtf8().data(), "*") == 0) {
 				cyl->bestmix_o2 = true;
-				// Calculate fO2 for max depth
+				// Calculate fO2 for max. depth
 				cyl->gasmix.o2 = best_o2(displayed_dive.maxdepth, &displayed_dive);
 			} else {
 				cyl->bestmix_o2 = false;
@@ -400,7 +430,7 @@ bool CylindersModel::setData(const QModelIndex &index, const QVariant &value, in
 		if (CHANGED()) {
 			if (QString::compare(vString.toUtf8().data(), "*") == 0) {
 				cyl->bestmix_he = true;
-				// Calculate fO2 for max depth
+				// Calculate fO2 for max. depth
 				cyl->gasmix.he = best_he(displayed_dive.maxdepth, &displayed_dive);
 			} else {
 				cyl->bestmix_he = false;
@@ -519,19 +549,16 @@ void CylindersModel::remove(const QModelIndex &index)
 		if (i == index.row() || cylinder_none(&displayed_dive.cylinder[i]))
 			continue;
 		struct gasmix *gas2 = &displayed_dive.cylinder[i].gasmix;
-		if (gasmix_distance(mygas, gas2) == 0)
+		if (gasmix_distance(mygas, gas2) == 0 && is_cylinder_used(&displayed_dive, i))
 			same_gas = i;
 	}
 	if (same_gas == -1 &&
 			((DivePlannerPointsModel::instance()->currentMode() != DivePlannerPointsModel::NOTHING &&
 				DivePlannerPointsModel::instance()->tankInUse(index.row())) ||
 			(DivePlannerPointsModel::instance()->currentMode() == DivePlannerPointsModel::NOTHING &&
-				is_cylinder_used(&displayed_dive, index.row())))) {
-				emit warningMessage(TITLE_OR_TEXT(
-															tr("Cylinder cannot be removed"),
-															tr("This gas is in use. Only cylinders that are not used in the dive can be removed.")));
+				is_cylinder_used(&displayed_dive, index.row()))))
 		return;
-	}
+
 	beginRemoveRows(QModelIndex(), index.row(), index.row()); // yah, know, ugly.
 	rows--;
 	// if we didn't find an identical gas, point same_gas at the index.row()
@@ -575,6 +602,11 @@ void CylindersModel::updateDecoDepths(pressure_t olddecopo2)
 		}
 	}
 	emit dataChanged(createIndex(0, 0), createIndex(MAX_CYLINDERS - 1, COLUMNS - 1));
+}
+
+void CylindersModel::updateTrashIcon()
+{
+	emit dataChanged(createIndex(0, 0), createIndex(MAX_CYLINDERS - 1, 0));
 }
 
 bool CylindersModel::updateBestMixes()

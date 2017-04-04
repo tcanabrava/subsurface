@@ -37,7 +37,7 @@ void QMLProfile::paint(QPainter *painter)
 	qreal sy = painterRect.height() / sceneSize / dprComp;
 
 	// next figure out the weird magic by which we need to shift the painter so the profile is shown
-	int dpr = rint(devicePixelRatio());
+	int dpr = lrint(devicePixelRatio());
 	qreal magicShiftFactor = (dpr == 2 ? 0.25 : (dpr == 3 ? 0.33 : 0.0));
 
 	// now set up the transformations scale the profile and
@@ -86,7 +86,8 @@ void QMLProfile::setDiveId(const QString &diveId)
 		return;
 	if (!d)
 		return;
-	qDebug() << "setDiveId called with valid dive" << d->number;
+	if (verbose)
+		qDebug() << "setDiveId(" << d->number << ")";
 	m_profileWidget->plotDive(d, true);
 }
 

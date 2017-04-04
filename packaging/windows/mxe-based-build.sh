@@ -20,6 +20,9 @@
 #
 # # This variable controls the targets that will build.
 # MXE_TARGETS :=  i686-w64-mingw32.shared
+#
+# # Uncomment the next line if you want to do debug builds later
+# # qtbase_CONFIGURE_OPTS=-debug-and-release
 #---
 # (documenting this in comments is hard... you need to remove
 # the first '#' of course)
@@ -70,6 +73,13 @@
 # touch build.libdivecomputer
 # to rebuild libdivecomputer before you build Subsurface
 #
+# If you want to create a installer for the debug build call
+#
+#  bash ../subsurface/packaging/windows/mxe-based-build.sh debug installer
+#
+# please be aware of the fact that this installer will be a few 100MB large
+#
+#
 # please send patches / additions to this file!
 #
 
@@ -101,9 +111,19 @@ export CXXFLAGS=-std=c++11
 
 if [[ "$1" == "debug" ]] ; then
 	RELEASE="Debug"
+	DLL_SUFFIX="d"
 	shift
+	if [[ -f Release ]] ; then
+		rm -rf *
+	fi
+	touch Debug
 else
 	RELEASE="Release"
+	DLL_SUFFIX=""
+	if [[ -f Debug ]] ; then
+		rm -rf *
+	fi
+	touch Release
 fi
 
 # grantlee
@@ -243,7 +263,8 @@ if [[ ! -d marble || -f build.marble ]] ; then
 	make $JOBS
 	make install
 	# what the heck is marble doing?
-	mv "$BASEDIR"/mxe/usr/i686-w64-mingw32.shared/libssrfmarblewidget.dll "$BASEDIR"/mxe/usr/i686-w64-mingw32.shared/lib
+	mv "$BASEDIR"/mxe/usr/i686-w64-mingw32.shared/libssrfmarblewidget"$DLL_SUFFIX".dll "$BASEDIR"/mxe/usr/i686-w64-mingw32.shared/lib
+	mv "$BASEDIR"/mxe/usr/i686-w64-mingw32.shared/libastro"$DLL_SUFFIX".dll "$BASEDIR"/mxe/usr/i686-w64-mingw32.shared/lib
 fi
 
 ###############
@@ -257,17 +278,46 @@ echo "Starting Subsurface Build"
 rm -rf subsurface
 
 # first copy the Qt plugins in place
-mkdir -p subsurface/staging/plugins
-cd subsurface/staging/plugins
-cp -a "$BASEDIR"/mxe/usr/i686-w64-mingw32.shared/qt5/plugins/iconengines .
-cp -a "$BASEDIR"/mxe/usr/i686-w64-mingw32.shared/qt5/plugins/imageformats .
-cp -a "$BASEDIR"/mxe/usr/i686-w64-mingw32.shared/qt5/plugins/platforms .
-cp -a "$BASEDIR"/mxe/usr/i686-w64-mingw32.shared/qt5/plugins/printsupport .
+QT_PLUGIN_DIRECTORIES="$BASEDIR/mxe/usr/i686-w64-mingw32.shared/qt5/plugins/iconengines \
+$BASEDIR/mxe/usr/i686-w64-mingw32.shared/qt5/plugins/imageformats \
+$BASEDIR/mxe/usr/i686-w64-mingw32.shared/qt5/plugins/platforms \
+$BASEDIR/mxe/usr/i686-w64-mingw32.shared/qt5/plugins/printsupport"
 
 # for some reason we aren't installing libssrfmarblewidget.dll and # Qt5Xml.dll
 # I need to figure out why and fix that, but for now just manually copy that as well
-cp "$BASEDIR"/mxe/usr/i686-w64-mingw32.shared/lib/libssrfmarblewidget.dll "$BUILDDIR"/subsurface/staging
-cp "$BASEDIR"/mxe/usr/i686-w64-mingw32.shared/qt5/bin/Qt5Xml.dll "$BUILDDIR"/subsurface/staging
+EXTRA_MANUAL_DEPENDENCIES="$BASEDIR/mxe/usr/i686-w64-mingw32.shared/lib/libssrfmarblewidget$DLL_SUFFIX.dll \
+$BASEDIR/mxe/usr/i686-w64-mingw32.shared/qt5/bin/Qt5Xml$DLL_SUFFIX.dll"
+
+
+
+
+STAGING_DIR=$BUILDDIR/subsurface/staging
+STAGING_TESTS_DIR=$BUILDDIR/subsurface/staging_tests
+
+mkdir -p $STAGING_DIR/plugins
+mkdir -p $STAGING_TESTS_DIR
+
+for d in $QT_PLUGIN_DIRECTORIES
+do
+	mkdir -p $STAGING_DIR/plugins/$(basename $d)
+	mkdir -p $STAGING_TESTS_DIR/$(basename $d)
+	for f in $d/*
+	do
+		if [[ "$RELEASE" == "Release" ]] && ([[ ! -f ${f//d.dll/.dll} || "$f" == "${f//d.dll/.dll}" ]]) ; then
+			cp $f $STAGING_DIR/plugins/$(basename $d)
+			cp $f $STAGING_TESTS_DIR/$(basename $d)
+		elif [[ "$RELEASE" == "Debug" && ! -f ${f//.dll/d.dll} ]] ; then
+			cp $f $STAGING_DIR/plugins/$(basename $d)
+			cp $f $STAGING_TESTS_DIR/$(basename $d)
+		fi
+	done
+done
+
+for f in $EXTRA_MANUAL_DEPENDENCIES
+do
+    cp $f $STAGING_DIR
+    cp $f $STAGING_TESTS_DIR
+done
 
 cd "$BUILDDIR"/subsurface
 
@@ -279,7 +329,7 @@ cmake -DCMAKE_TOOLCHAIN_FILE="$BASEDIR"/mxe/usr/i686-w64-mingw32.shared/share/cm
 	-DLIBDIVECOMPUTER_INCLUDE_DIR="$BASEDIR"/mxe/usr/i686-w64-mingw32.shared/include \
 	-DLIBDIVECOMPUTER_LIBRARIES="$BASEDIR"/mxe/usr/i686-w64-mingw32.shared/lib/libdivecomputer.dll.a \
 	-DMARBLE_INCLUDE_DIR="$BASEDIR"/mxe/usr/i686-w64-mingw32.shared/include \
-	-DMARBLE_LIBRARIES="$BASEDIR"/mxe/usr/i686-w64-mingw32.shared/lib/libssrfmarblewidget.dll \
+	-DMARBLE_LIBRARIES="$BASEDIR"/mxe/usr/i686-w64-mingw32.shared/lib/libssrfmarblewidget"$DLL_SUFFIX".dll \
 	-DMAKE_TESTS=OFF \
 	"$BASEDIR"/subsurface
 

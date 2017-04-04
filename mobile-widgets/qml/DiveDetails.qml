@@ -1,13 +1,12 @@
 import QtQuick 2.4
-import QtQuick.Controls 1.4
-import QtQuick.Controls.Styles 1.4
+import QtQuick.Controls 2.0
 import QtQuick.Dialogs 1.2
 import QtQuick.Layouts 1.2
 import org.subsurfacedivelog.mobile 1.0
-import org.kde.kirigami 1.0 as Kirigami
+import org.kde.kirigami 2.0 as Kirigami
 
 Kirigami.Page {
-	id: diveDetailsPage
+	id: diveDetailsPage // but this is referenced as detailsWindow
 	property alias currentIndex: diveDetailsListView.currentIndex
 	property alias currentItem: diveDetailsListView.currentItem
 	property alias dive_id: detailsEdit.dive_id
@@ -49,26 +48,26 @@ Kirigami.Page {
 				target: diveDetailsPage;
 				actions {
 					right: deleteAction
-					left: diveDetailsListView.currentItem.modelData.dive.gps !== "" ? mapAction : null
+					left: diveDetailsListView.currentItem ? (diveDetailsListView.currentItem.modelData.dive.gps !== "" ? mapAction : null) : null
 				}
 			}
-			PropertyChanges { target: detailsEditScroll; opened: false }
+			PropertyChanges { target: detailsEditScroll; sheetOpen: false }
 			PropertyChanges { target: pageStack.contentItem; interactive: true }
 		},
 		State {
 			name: "edit"
-			PropertyChanges { target: detailsEditScroll; opened: true }
+			PropertyChanges { target: detailsEditScroll; sheetOpen: true }
 			PropertyChanges { target: pageStack.contentItem; interactive: false }
 		},
 		State {
 			name: "add"
-			PropertyChanges { target: detailsEditScroll; opened: true }
+			PropertyChanges { target: detailsEditScroll; sheetOpen: true }
 			PropertyChanges { target: pageStack.contentItem; interactive: false }
 		}
 
 	]
 
-	property QtObject deleteAction: Action {
+	property QtObject deleteAction: Kirigami.Action {
 		text: qsTr("Delete dive")
 		iconName: "trash-empty"
 		onTriggered: {
@@ -85,18 +84,18 @@ Kirigami.Page {
 		}
 	}
 
-	property QtObject mapAction: Action {
+	property QtObject mapAction: Kirigami.Action {
 		text: qsTr("Show on map")
 		iconName: "gps"
 		onTriggered: {
-			showMap(diveDetailsListView.currentItem.modelData.dive.gps)
+			showMap(diveDetailsListView.currentItem.modelData.dive.gps_decimal)
 		}
 	}
 
-	actions.main: Action {
+	actions.main: Kirigami.Action {
 		iconName: state !== "view" ? "document-save" : "document-edit"
 		onTriggered: {
-            manager.appendTextToLog("save/edit button triggered")
+			manager.appendTextToLog("save/edit button triggered")
 			if (state === "edit" || state === "add") {
 				detailsEdit.saveData()
 			} else {
@@ -117,20 +116,13 @@ Kirigami.Page {
 		// if we were in view mode, don't accept the event and pop the page
 	}
 
-	onUpdateCurrentIdxChanged: {
-		if (diveDetailsListView.currentIndex != updateCurrentIdx) {
-			diveDetailsListView.currentIndex = updateCurrentIdx
-			manager.selectedDiveTimestamp = diveDetailsListView.currentItem.modelData.dive.timestamp
-		}
-	}
-
 	onCurrentItemChanged: {
 		manager.selectedDiveTimestamp = diveDetailsListView.currentItem.modelData.dive.timestamp
 	}
 
 	function showDiveIndex(index) {
 		currentIndex = index;
-		diveDetailsListView.positionViewAtIndex(index, ListView.Beginning);
+		//diveDetailsListView.positionViewAtIndex(index, ListView.End);
 	}
 
 	function endEditMode() {
@@ -178,49 +170,48 @@ Kirigami.Page {
 		diveDetailsPage.state = "edit"
 	}
 
-	onWidthChanged: diveDetailsListView.positionViewAtIndex(diveDetailsListView.currentIndex, ListView.Beginning);
+	//onWidthChanged: diveDetailsListView.positionViewAtIndex(diveDetailsListView.currentIndex, ListView.Beginning);
 
 	Item {
 		anchors.fill: parent
-		ScrollView {
-			id: diveDetailList
+		ListView {
+			id: diveDetailsListView
 			anchors.fill: parent
-			ListView {
-				id: diveDetailsListView
-				anchors.fill: parent
-				model: diveModel
-				currentIndex: -1
-				boundsBehavior: Flickable.StopAtBounds
-				maximumFlickVelocity: parent.width * 5
-				orientation: ListView.Horizontal
-				focus: true
-				clip: true
-				snapMode: ListView.SnapOneItem
-				onMovementEnded: {
-					currentIndex = indexAt(contentX+1, 1);
-				}
-				delegate: ScrollView {
-					id: internalScrollView
-					width: diveDetailsListView.width
-					height: diveDetailsListView.height
-					property var modelData: model
-					Flickable {
-						//contentWidth: parent.width
-						contentHeight: diveDetails.height
-						boundsBehavior: Flickable.StopAtBounds
-						DiveDetailsView {
-							id: diveDetails
-							width: internalScrollView.width
-						}
-					}
-				}
+			model: diveModel
+			currentIndex: -1
+			boundsBehavior: Flickable.StopAtBounds
+			maximumFlickVelocity: parent.width * 5
+			orientation: ListView.Horizontal
+			highlightFollowsCurrentItem: true
+			focus: true
+			clip: false
+			//cacheBuffer: parent.width * 3 // cache one item on either side (this is in pixels)
+			snapMode: ListView.SnapOneItem
+			highlightRangeMode: ListView.StrictlyEnforceRange
+			onMovementEnded: {
+				currentIndex = indexAt(contentX+1, 1);
 			}
+			delegate: Flickable {
+				id: internalScrollView
+				width: diveDetailsListView.width
+				height: diveDetailsListView.height
+				contentHeight: diveDetails.height
+				boundsBehavior: Flickable.StopAtBounds
+				property var modelData: model
+				DiveDetailsView {
+					id: diveDetails
+					width: internalScrollView.width
+				}
+				ScrollBar.vertical: ScrollBar { }
+			}
+			ScrollIndicator.horizontal: ScrollIndicator { }
 		}
 		Kirigami.OverlaySheet {
 			id: detailsEditScroll
-			anchors.fill: parent
-			onOpenedChanged: {
-				if (!opened) {
+			parent: diveDetailsPage
+			rootItem.z: 0
+			onSheetOpenChanged: {
+				if (!sheetOpen) {
 					endEditMode()
 				}
 			}

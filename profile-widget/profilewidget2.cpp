@@ -101,9 +101,6 @@ ProfileWidget2::ProfileWidget2(QWidget *parent) : QGraphicsView(parent),
 	gasPressureItem(new DiveGasPressureItem()),
 	diveComputerText(new DiveTextItem()),
 	reportedCeiling(new DiveReportedCeiling()),
-#ifndef SUBSURFACE_MOBILE
-	diveCeiling(new DiveCalculatedCeiling(this)),
-	decoModelParameters(new DiveTextItem()),
 	pn2GasItem(new PartialPressureGasItem()),
 	pheGasItem(new PartialPressureGasItem()),
 	po2GasItem(new PartialPressureGasItem()),
@@ -111,6 +108,9 @@ ProfileWidget2::ProfileWidget2(QWidget *parent) : QGraphicsView(parent),
 	ccrsensor1GasItem(new PartialPressureGasItem()),
 	ccrsensor2GasItem(new PartialPressureGasItem()),
 	ccrsensor3GasItem(new PartialPressureGasItem()),
+#ifndef SUBSURFACE_MOBILE
+	diveCeiling(new DiveCalculatedCeiling(this)),
+	decoModelParameters(new DiveTextItem()),
 	heartBeatAxis(new DiveCartesianAxis(this)),
 	heartBeatItem(new DiveHeartrateItem()),
 	percentageAxis(new DiveCartesianAxis(this)),
@@ -180,9 +180,6 @@ ProfileWidget2::~ProfileWidget2()
 	delete gasPressureItem;
 	delete diveComputerText;
 	delete reportedCeiling;
-#ifndef SUBSURFACE_MOBILE
-	delete toolTipItem;
-	delete diveCeiling;
 	delete pn2GasItem;
 	delete pheGasItem;
 	delete po2GasItem;
@@ -190,6 +187,9 @@ ProfileWidget2::~ProfileWidget2()
 	delete ccrsensor1GasItem;
 	delete ccrsensor2GasItem;
 	delete ccrsensor3GasItem;
+#ifndef SUBSURFACE_MOBILE
+	delete toolTipItem;
+	delete diveCeiling;
 	delete heartBeatAxis;
 	delete heartBeatItem;
 	delete percentageAxis;
@@ -225,10 +225,6 @@ void ProfileWidget2::addItemsToScene()
 	scene()->addItem(diveComputerText);
 	scene()->addItem(reportedCeiling);
 	scene()->addItem(tankItem);
-#ifndef SUBSURFACE_MOBILE
-	scene()->addItem(toolTipItem);
-	scene()->addItem(diveCeiling);
-	scene()->addItem(decoModelParameters);
 	scene()->addItem(pn2GasItem);
 	scene()->addItem(pheGasItem);
 	scene()->addItem(po2GasItem);
@@ -236,6 +232,10 @@ void ProfileWidget2::addItemsToScene()
 	scene()->addItem(ccrsensor1GasItem);
 	scene()->addItem(ccrsensor2GasItem);
 	scene()->addItem(ccrsensor3GasItem);
+#ifndef SUBSURFACE_MOBILE
+	scene()->addItem(toolTipItem);
+	scene()->addItem(diveCeiling);
+	scene()->addItem(decoModelParameters);
 	scene()->addItem(percentageAxis);
 	scene()->addItem(heartBeatAxis);
 	scene()->addItem(heartBeatItem);
@@ -342,21 +342,23 @@ void ProfileWidget2::setupItemOnScene()
 	setupItem(diveProfileItem, timeAxis, profileYAxis, dataModel, DivePlotDataModel::DEPTH, DivePlotDataModel::TIME, 0);
 	setupItem(meanDepthItem, timeAxis, profileYAxis, dataModel, DivePlotDataModel::INSTANT_MEANDEPTH, DivePlotDataModel::TIME, 1);
 
-#ifndef SUBSURFACE_MOBILE
-#define CREATE_PP_GAS(ITEM, VERTICAL_COLUMN, COLOR, COLOR_ALERT, THRESHOULD_SETTINGS)              \
+#define CREATE_PP_GAS(ITEM, VERTICAL_COLUMN, COLOR, COLOR_ALERT, THRESHOULD_SETTINGS_MIN, THRESHOULD_SETTINGS_MAX)              \
 	setupItem(ITEM, timeAxis, gasYAxis, dataModel, DivePlotDataModel::VERTICAL_COLUMN, DivePlotDataModel::TIME, 0); \
-	ITEM->setThreshouldSettingsKey(THRESHOULD_SETTINGS);                                                            \
+	ITEM->setThreshouldSettingsKey(THRESHOULD_SETTINGS_MIN, THRESHOULD_SETTINGS_MAX);                                                            \
 	ITEM->setColors(getColor(COLOR, isGrayscale), getColor(COLOR_ALERT, isGrayscale));                              \
 	ITEM->settingsChanged();                                                                                        \
 	ITEM->setZValue(99);
 
-	CREATE_PP_GAS(pn2GasItem, PN2, PN2, PN2_ALERT, &prefs.pp_graphs.pn2_threshold);
-	CREATE_PP_GAS(pheGasItem, PHE, PHE, PHE_ALERT, &prefs.pp_graphs.phe_threshold);
-	CREATE_PP_GAS(po2GasItem, PO2, PO2, PO2_ALERT, &prefs.pp_graphs.po2_threshold);
-	CREATE_PP_GAS(o2SetpointGasItem, O2SETPOINT, PO2_ALERT, PO2_ALERT, &prefs.pp_graphs.po2_threshold);
-	CREATE_PP_GAS(ccrsensor1GasItem, CCRSENSOR1, CCRSENSOR1, PO2_ALERT, &prefs.pp_graphs.po2_threshold);
-	CREATE_PP_GAS(ccrsensor2GasItem, CCRSENSOR2, CCRSENSOR2, PO2_ALERT, &prefs.pp_graphs.po2_threshold);
-	CREATE_PP_GAS(ccrsensor3GasItem, CCRSENSOR3, CCRSENSOR3, PO2_ALERT, &prefs.pp_graphs.po2_threshold);
+	CREATE_PP_GAS(pn2GasItem, PN2, PN2, PN2_ALERT, NULL, &prefs.pp_graphs.pn2_threshold);
+	CREATE_PP_GAS(pheGasItem, PHE, PHE, PHE_ALERT, NULL, &prefs.pp_graphs.phe_threshold);
+	CREATE_PP_GAS(po2GasItem, PO2, PO2, PO2_ALERT, &prefs.pp_graphs.po2_threshold_min, &prefs.pp_graphs.po2_threshold_max);
+	CREATE_PP_GAS(o2SetpointGasItem, O2SETPOINT, PO2_ALERT, PO2_ALERT, &prefs.pp_graphs.po2_threshold_min, &prefs.pp_graphs.po2_threshold_max);
+	CREATE_PP_GAS(ccrsensor1GasItem, CCRSENSOR1, CCRSENSOR1, PO2_ALERT, &prefs.pp_graphs.po2_threshold_min, &prefs.pp_graphs.po2_threshold_max);
+	CREATE_PP_GAS(ccrsensor2GasItem, CCRSENSOR2, CCRSENSOR2, PO2_ALERT, &prefs.pp_graphs.po2_threshold_min, &prefs.pp_graphs.po2_threshold_max);
+	CREATE_PP_GAS(ccrsensor3GasItem, CCRSENSOR3, CCRSENSOR3, PO2_ALERT, &prefs.pp_graphs.po2_threshold_min, &prefs.pp_graphs.po2_threshold_max);
+
+#undef CREATE_PP_GAS
+#ifndef SUBSURFACE_MOBILE
 
 	// Visibility Connections
 	connect(SettingsObjectWrapper::instance()->pp_gas, &PartialPressureGasSettings::showPheChanged, pheGasItem, &PartialPressureGasItem::setVisible);
@@ -369,7 +371,6 @@ void ProfileWidget2::setupItemOnScene()
 	connect(SettingsObjectWrapper::instance()->techDetails, &TechnicalDetailsSettings::showCCRSensorsChanged, ccrsensor1GasItem, &PartialPressureGasItem::setVisible);
 	connect(SettingsObjectWrapper::instance()->techDetails, &TechnicalDetailsSettings::showCCRSensorsChanged, ccrsensor2GasItem, &PartialPressureGasItem::setVisible);
 	connect(SettingsObjectWrapper::instance()->techDetails, &TechnicalDetailsSettings::showCCRSensorsChanged, ccrsensor3GasItem, &PartialPressureGasItem::setVisible);
-#undef CREATE_PP_GAS
 
 	heartBeatAxis->setTextVisible(true);
 	heartBeatAxis->setLinesVisible(true);
@@ -438,10 +439,16 @@ void ProfileWidget2::setupItemSizes()
 	// Partial Gas Axis Config
 	itemPos.partialPressure.pos.on.setX(97);
 	itemPos.partialPressure.pos.on.setY(75);
+#ifdef SUBSURFACE_MOBILE
+	itemPos.partialPressure.pos.on.setY(70);
+#endif
 	itemPos.partialPressure.pos.off.setX(110);
 	itemPos.partialPressure.pos.off.setY(63);
 	itemPos.partialPressure.expanded.setP1(QPointF(0, 0));
 	itemPos.partialPressure.expanded.setP2(QPointF(0, 19));
+#ifdef SUBSURFACE_MOBILE
+	itemPos.partialPressure.expanded.setP2(QPointF(0, 20));
+#endif
 	itemPos.partialPressureWithTankBar = itemPos.partialPressure;
 	itemPos.partialPressureWithTankBar.expanded.setP2(QPointF(0, 17));
 	itemPos.partialPressureTissue = itemPos.partialPressure;
@@ -617,14 +624,12 @@ void ProfileWidget2::plotDive(struct dive *d, bool force)
 		currentdc = fake_dc(currentdc, false);
 	}
 
-#ifndef SUBSURFACE_MOBILE
 	bool setpointflag = (currentdc->divemode == CCR) && prefs.pp_graphs.po2 && current_dive;
 	bool sensorflag = setpointflag && prefs.show_ccr_sensors;
 	o2SetpointGasItem->setVisible(setpointflag && prefs.show_ccr_setpoint);
 	ccrsensor1GasItem->setVisible(sensorflag);
 	ccrsensor2GasItem->setVisible(sensorflag && (currentdc->no_o2sensors > 1));
 	ccrsensor3GasItem->setVisible(sensorflag && (currentdc->no_o2sensors > 2));
-#endif
 
 	/* This struct holds all the data that's about to be plotted.
 	 * I'm not sure this is the best approach ( but since we are
@@ -639,7 +644,7 @@ void ProfileWidget2::plotDive(struct dive *d, bool force)
 	if (shouldCalculateMaxTime || newMaxtime > maxtime)
 		maxtime = newMaxtime;
 
-	/* Only update the max depth if it's bigger than the current ones
+	/* Only update the max. depth if it's bigger than the current ones
 	 * when we are dragging the handler to plan / add dive.
 	 * otherwhise, update normally.
 	 */
@@ -703,9 +708,28 @@ void ProfileWidget2::plotDive(struct dive *d, bool force)
 
 #ifdef SUBSURFACE_MOBILE
 	if (currentdc->divemode == CCR) {
+		gasYAxis->setPos(itemPos.partialPressure.pos.on);	
+		gasYAxis->setLine(itemPos.partialPressure.expanded);
+
 		tankItem->setVisible(false);
+		pn2GasItem->setVisible(false);
+		po2GasItem->setVisible(prefs.pp_graphs.po2);
+		pheGasItem->setVisible(false);
+		o2SetpointGasItem->setVisible(prefs.show_ccr_setpoint);
+		ccrsensor1GasItem->setVisible(prefs.show_ccr_sensors);
+		ccrsensor2GasItem->setVisible(prefs.show_ccr_sensors && (currentdc->no_o2sensors > 1));
+		ccrsensor3GasItem->setVisible(prefs.show_ccr_sensors && (currentdc->no_o2sensors > 1));
+		temperatureItem->setVisible(false);
 	} else {
 		tankItem->setVisible(prefs.tankbar);
+		gasYAxis->setPos(itemPos.partialPressure.pos.off);
+		pn2GasItem->setVisible(false);
+		po2GasItem->setVisible(false);
+		pheGasItem->setVisible(false);
+		o2SetpointGasItem->setVisible(false);
+		ccrsensor1GasItem->setVisible(false);
+		ccrsensor2GasItem->setVisible(false);
+		ccrsensor3GasItem->setVisible(false);
 	}
 #endif
 	tankItem->setData(dataModel, &plotInfo, &displayed_dive);
@@ -949,8 +973,8 @@ void ProfileWidget2::mouseDoubleClickEvent(QMouseEvent *event)
 		if (isPointOutOfBoundaries(mappedPos))
 			return;
 
-		int minutes = rint(timeAxis->valueAt(mappedPos) / 60);
-		int milimeters = rint(profileYAxis->valueAt(mappedPos) / M_OR_FT(1, 1)) * M_OR_FT(1, 1);
+		int minutes = lrint(timeAxis->valueAt(mappedPos) / 60);
+		int milimeters = lrint(profileYAxis->valueAt(mappedPos) / M_OR_FT(1, 1)) * M_OR_FT(1, 1);
 		plannerModel->addStop(milimeters, minutes * 60, -1, 0, true);
 	}
 }
@@ -975,8 +999,8 @@ void ProfileWidget2::scrollViewTo(const QPoint &pos)
 	QScrollBar *hs = horizontalScrollBar();
 	const qreal yRat = (qreal)pos.y() / viewport()->height();
 	const qreal xRat = (qreal)pos.x() / viewport()->width();
-	vs->setValue(yRat * vs->maximum());
-	hs->setValue(xRat * hs->maximum());
+	vs->setValue(lrint(yRat * vs->maximum()));
+	hs->setValue(lrint(xRat * hs->maximum()));
 }
 
 void ProfileWidget2::mouseMoveEvent(QMouseEvent *event)
@@ -1036,18 +1060,18 @@ void ProfileWidget2::setEmptyState()
 	diveComputerText->setVisible(false);
 	reportedCeiling->setVisible(false);
 	tankItem->setVisible(false);
+	pn2GasItem->setVisible(false);
+	po2GasItem->setVisible(false);
+	pheGasItem->setVisible(false);
+	o2SetpointGasItem->setVisible(false);
+	ccrsensor1GasItem->setVisible(false);
+	ccrsensor2GasItem->setVisible(false);
+	ccrsensor3GasItem->setVisible(false);
 #ifndef SUBSURFACE_MOBILE
 	toolTipItem->setVisible(false);
 	diveCeiling->setVisible(false);
 	decoModelParameters->setVisible(false);
 	rulerItem->setVisible(false);
-	pn2GasItem->setVisible(false);
-	po2GasItem->setVisible(false);
-	o2SetpointGasItem->setVisible(false);
-	ccrsensor1GasItem->setVisible(false);
-	ccrsensor2GasItem->setVisible(false);
-	ccrsensor3GasItem->setVisible(false);
-	pheGasItem->setVisible(false);
 	ambPressureItem->setVisible(false);
 	gflineItem->setVisible(false);
 	mouseFollowerHorizontal->setVisible(false);
@@ -1312,7 +1336,7 @@ bool ProfileWidget2::isAddOrPlanner()
 struct plot_data *ProfileWidget2::getEntryFromPos(QPointF pos)
 {
 	// find the time stamp corresponding to the mouse position
-	int seconds = timeAxis->valueAt(pos);
+	int seconds = lrint(timeAxis->valueAt(pos));
 	struct plot_data *entry = NULL;
 
 	for (int i = 0; i < plotInfo.nr; i++) {
@@ -1540,7 +1564,7 @@ void ProfileWidget2::addBookmark()
 {
 	QAction *action = qobject_cast<QAction *>(sender());
 	QPointF scenePos = mapToScene(mapFromGlobal(action->data().toPoint()));
-	add_event(current_dc, timeAxis->valueAt(scenePos), SAMPLE_EVENT_BOOKMARK, 0, 0, "bookmark");
+	add_event(current_dc, lrint(timeAxis->valueAt(scenePos)), SAMPLE_EVENT_BOOKMARK, 0, 0, "bookmark");
 	invalidate_dive_cache(current_dive);
 	mark_divelist_changed(true);
 	replot();
@@ -1550,7 +1574,7 @@ void ProfileWidget2::addSetpointChange()
 {
 	QAction *action = qobject_cast<QAction *>(sender());
 	QPointF scenePos = mapToScene(mapFromGlobal(action->data().toPoint()));
-	SetpointDialog::instance()->setpointData(current_dc, timeAxis->valueAt(scenePos));
+	SetpointDialog::instance()->setpointData(current_dc, lrint(timeAxis->valueAt(scenePos)));
 	SetpointDialog::instance()->show();
 }
 
@@ -1736,13 +1760,13 @@ void ProfileWidget2::repositionDiveHandlers()
 			continue;
 		DiveHandler *h = handles.at(i);
 		h->setVisible(datapoint.entered);
-		h->setPos(timeAxis->posAtValue(datapoint.time), profileYAxis->posAtValue(datapoint.depth));
+		h->setPos(timeAxis->posAtValue(datapoint.time), profileYAxis->posAtValue(datapoint.depth.mm));
 		QPointF p1;
 		if (i == 0) {
 			if (prefs.drop_stone_mode)
 				// place the text on the straight line from the drop to stone position
-				p1 = QPointF(timeAxis->posAtValue(datapoint.depth / prefs.descrate),
-					     profileYAxis->posAtValue(datapoint.depth));
+				p1 = QPointF(timeAxis->posAtValue(datapoint.depth.mm / prefs.descrate),
+					     profileYAxis->posAtValue(datapoint.depth.mm));
 			else
 				// place the text on the straight line from the origin to the first position
 				p1 = QPointF(timeAxis->posAtValue(0), profileYAxis->posAtValue(0));
@@ -1783,19 +1807,19 @@ void ProfileWidget2::recreatePlannedDive()
 	DiveHandler *activeHandler = qobject_cast<DiveHandler *>(sender());
 	DivePlannerPointsModel *plannerModel = DivePlannerPointsModel::instance();
 	int index = fixHandlerIndex(activeHandler);
-	int mintime = 0, maxtime = (timeAxis->maximum() + 10) * 60;
+	int mintime = 0, maxtime = lrint((timeAxis->maximum() + 10) * 60);
 	if (index > 0)
 		mintime = plannerModel->at(index - 1).time;
 	if (index < plannerModel->size() - 1)
 		maxtime = plannerModel->at(index + 1).time;
 
-	int minutes = rint(timeAxis->valueAt(activeHandler->pos()) / 60);
+	int minutes = lrint(timeAxis->valueAt(activeHandler->pos()) / 60);
 	if (minutes * 60 <= mintime || minutes * 60 >= maxtime)
 		return;
 
 	divedatapoint data = plannerModel->at(index);
-	data.depth = rint(profileYAxis->valueAt(activeHandler->pos()) / M_OR_FT(1, 1)) * M_OR_FT(1, 1);
-	data.time = rint(timeAxis->valueAt(activeHandler->pos()));
+	data.depth.mm = lrint(profileYAxis->valueAt(activeHandler->pos()) / M_OR_FT(1, 1)) * M_OR_FT(1, 1);
+	data.time = lrint(timeAxis->valueAt(activeHandler->pos()));
 
 	plannerModel->editStop(index, data);
 }
@@ -1810,10 +1834,10 @@ void ProfileWidget2::keyDownAction()
 		if (DiveHandler *handler = qgraphicsitem_cast<DiveHandler *>(i)) {
 			int row = handles.indexOf(handler);
 			divedatapoint dp = plannerModel->at(row);
-			if (dp.depth >= profileYAxis->maximum())
+			if (dp.depth.mm >= profileYAxis->maximum())
 				continue;
 
-			dp.depth += M_OR_FT(1, 5);
+			dp.depth.mm += M_OR_FT(1, 5);
 			plannerModel->editStop(row, dp);
 		}
 	}
@@ -1830,10 +1854,10 @@ void ProfileWidget2::keyUpAction()
 			int row = handles.indexOf(handler);
 			divedatapoint dp = plannerModel->at(row);
 
-			if (dp.depth <= 0)
+			if (dp.depth.mm <= 0)
 				continue;
 
-			dp.depth -= M_OR_FT(1, 5);
+			dp.depth.mm -= M_OR_FT(1, 5);
 			plannerModel->editStop(row, dp);
 		}
 	}
@@ -1992,7 +2016,7 @@ void ProfileWidget2::dropEvent(QDropEvent *event)
 
 		FOR_EACH_PICTURE(current_dive) {
 			if (QString(picture->filename) == filename) {
-				picture->offset.seconds = timeAxis->valueAt(mappedPos);
+				picture->offset.seconds = lrint(timeAxis->valueAt(mappedPos));
 				mark_divelist_changed(true);
 				break;
 			}

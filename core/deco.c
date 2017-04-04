@@ -43,7 +43,7 @@ struct buehlmann_config {
 	double gf_high;			//! gradient factor high (at surface).
 	double gf_low;			//! gradient factor low (at bottom/start of deco calculation).
 	double gf_low_position_min;	//! gf_low_position below surface_min_shallow.
-	bool gf_low_at_maxdepth;	//! if true, gf_low applies at max depth instead of at deepest ceiling.
+	bool gf_low_at_maxdepth;	//! if true, gf_low applies at max. depth instead of at deepest ceiling.
 };
 
 struct buehlmann_config buehlmann_config = {
@@ -622,10 +622,10 @@ int deco_allowed_depth(double tissues_tolerance, double surface_pressure, struct
 	/* Avoid negative depths */
 	pressure_delta = tissues_tolerance > surface_pressure ? tissues_tolerance - surface_pressure : 0.0;
 
-	depth = rel_mbar_to_depth(pressure_delta * 1000, dive);
+	depth = rel_mbar_to_depth(lrint(pressure_delta * 1000), dive);
 
 	if (!smooth)
-		depth = ceil(depth / DECO_STOPS_MULTIPLIER_MM) * DECO_STOPS_MULTIPLIER_MM;
+		depth = lrint(ceil(depth / DECO_STOPS_MULTIPLIER_MM) * DECO_STOPS_MULTIPLIER_MM);
 
 	if (depth > 0 && depth < buehlmann_config.last_deco_stop_in_mtr * 1000)
 		depth = buehlmann_config.last_deco_stop_in_mtr * 1000;

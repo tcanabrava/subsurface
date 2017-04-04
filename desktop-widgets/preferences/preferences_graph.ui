@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>650</width>
-    <height>578</height>
+    <height>634</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -26,37 +26,7 @@
          <bool>true</bool>
         </property>
         <property name="text">
-         <string>Threshold for pO₂ (bar)</string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="1">
-       <widget class="QDoubleSpinBox" name="po2Threshold">
-        <property name="enabled">
-         <bool>true</bool>
-        </property>
-        <property name="singleStep">
-         <double>0.100000000000000</double>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="0">
-       <widget class="QLabel" name="label_13">
-        <property name="enabled">
-         <bool>true</bool>
-        </property>
-        <property name="text">
-         <string>Threshold for pN₂ (bar)</string>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="1">
-       <widget class="QDoubleSpinBox" name="pn2Threshold">
-        <property name="enabled">
-         <bool>true</bool>
-        </property>
-        <property name="singleStep">
-         <double>0.100000000000000</double>
+         <string>Threshold for pO₂ (minimum, maximum)</string>
         </property>
        </widget>
       </item>
@@ -66,14 +36,17 @@
          <bool>true</bool>
         </property>
         <property name="text">
-         <string>Threshold for pHe (bar)</string>
+         <string>Threshold for pHe (maximum only)</string>
         </property>
        </widget>
       </item>
-      <item row="2" column="1">
-       <widget class="QDoubleSpinBox" name="pheThreshold">
+      <item row="0" column="2">
+       <widget class="QDoubleSpinBox" name="po2ThresholdMax">
         <property name="enabled">
          <bool>true</bool>
+        </property>
+        <property name="suffix">
+         <string>bar</string>
         </property>
         <property name="singleStep">
          <double>0.100000000000000</double>
@@ -86,36 +59,49 @@
          <bool>true</bool>
         </property>
         <property name="text">
-         <string>pO₂ in calculating MOD (bar)</string>
+         <string>pO₂ in calculating MOD (maximum only )</string>
         </property>
        </widget>
       </item>
-      <item row="3" column="1">
-       <widget class="QDoubleSpinBox" name="maxpo2">
+      <item row="0" column="1">
+       <widget class="QDoubleSpinBox" name="po2ThresholdMin">
         <property name="enabled">
          <bool>true</bool>
         </property>
+        <property name="suffix">
+         <string>bar</string>
+        </property>
         <property name="singleStep">
-         <double>0.100000000000000</double>
+         <double>0.010000000000000</double>
         </property>
        </widget>
       </item>
-      <item row="4" column="0">
-       <widget class="QLabel" name="label_26">
+      <item row="6" column="1" colspan="2">
+       <widget class="QCheckBox" name="show_ccr_sensors">
         <property name="text">
-         <string>CCR options:</string>
+         <string>Show individual O₂ sensor values when viewing pO₂</string>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="1" colspan="2">
+       <widget class="QCheckBox" name="show_ccr_setpoint">
+        <property name="text">
+         <string>Show setpoints when viewing pO₂</string>
         </property>
        </widget>
       </item>
       <item row="4" column="1">
        <widget class="QLabel" name="label_27">
         <property name="text">
-         <string>Dive planner default setpoint (bar)</string>
+         <string>Dive planner default setpoint</string>
         </property>
        </widget>
       </item>
       <item row="4" column="2">
        <widget class="QDoubleSpinBox" name="defaultSetpoint">
+        <property name="suffix">
+         <string>bar</string>
+        </property>
         <property name="decimals">
          <number>2</number>
         </property>
@@ -127,17 +113,59 @@
         </property>
        </widget>
       </item>
-      <item row="5" column="1" colspan="2">
-       <widget class="QCheckBox" name="show_ccr_setpoint">
+      <item row="1" column="0">
+       <widget class="QLabel" name="label_13">
+        <property name="enabled">
+         <bool>true</bool>
+        </property>
         <property name="text">
-         <string>Show setpoints when viewing pO₂</string>
+         <string>Threshold for pN₂ (maximum only)</string>
         </property>
        </widget>
       </item>
-      <item row="6" column="1" colspan="2">
-       <widget class="QCheckBox" name="show_ccr_sensors">
+      <item row="4" column="0">
+       <widget class="QLabel" name="label_26">
         <property name="text">
-         <string>Show individual O₂ sensor values when viewing pO₂</string>
+         <string>CCR options:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="2">
+       <widget class="QDoubleSpinBox" name="pn2Threshold">
+        <property name="enabled">
+         <bool>true</bool>
+        </property>
+        <property name="suffix">
+         <string>bar</string>
+        </property>
+        <property name="singleStep">
+         <double>0.100000000000000</double>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="2">
+       <widget class="QDoubleSpinBox" name="pheThreshold">
+        <property name="enabled">
+         <bool>true</bool>
+        </property>
+        <property name="suffix">
+         <string>bar</string>
+        </property>
+        <property name="singleStep">
+         <double>0.100000000000000</double>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="2">
+       <widget class="QDoubleSpinBox" name="maxpo2">
+        <property name="enabled">
+         <bool>true</bool>
+        </property>
+        <property name="suffix">
+         <string>bar</string>
+        </property>
+        <property name="singleStep">
+         <double>0.100000000000000</double>
         </property>
        </widget>
       </item>
@@ -150,13 +178,13 @@
       <string>Ceiling display setup</string>
      </property>
      <layout class="QGridLayout" name="gridLayout_3">
-      <item row="0" column="0" colspan="2">
-       <widget class="QCheckBox" name="red_ceiling">
-        <property name="enabled">
-         <bool>true</bool>
-        </property>
+      <item row="2" column="1">
+       <widget class="QLabel" name="label_VPMB">
         <property name="text">
-         <string>Draw dive computer reported ceiling red</string>
+         <string>Conservatism level</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
         </property>
        </widget>
       </item>
@@ -170,20 +198,93 @@
         </property>
        </widget>
       </item>
-      <item row="2" column="0">
-       <widget class="QRadioButton" name="vpmb">
+      <item row="3" column="0">
+       <widget class="QRadioButton" name="buehlmann">
         <property name="text">
-         <string>VPM-B</string>
+         <string>B&amp;ühlmann</string>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
         </property>
        </widget>
       </item>
-      <item row="2" column="1">
-       <widget class="QLabel" name="label_VPMB">
+      <item row="0" column="0" colspan="2">
+       <widget class="QCheckBox" name="red_ceiling">
+        <property name="enabled">
+         <bool>true</bool>
+        </property>
         <property name="text">
-         <string>VPM-B Conservatism</string>
+         <string>Draw dive computer reported ceiling red</string>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="4">
+       <widget class="QSpinBox" name="pscrfactor">
+        <property name="suffix">
+         <string/>
+        </property>
+        <property name="prefix">
+         <string>1:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="3">
+       <widget class="QLabel" name="label_GFhigh">
+        <property name="text">
+         <string>GFHigh</string>
         </property>
         <property name="alignment">
          <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="2">
+       <widget class="QDoubleSpinBox" name="psro2rate">
+        <property name="suffix">
+         <string>ℓ/min</string>
+        </property>
+        <property name="decimals">
+         <number>3</number>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="2">
+       <widget class="QSpinBox" name="gflow">
+        <property name="suffix">
+         <string>%</string>
+        </property>
+        <property name="minimum">
+         <number>1</number>
+        </property>
+        <property name="maximum">
+         <number>150</number>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="1">
+       <widget class="QLabel" name="MetabolicRate">
+        <property name="text">
+         <string>Metabolic rate O₂</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="3">
+       <widget class="QLabel" name="label_28">
+        <property name="text">
+         <string>Dilution ratio</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="2" colspan="2">
+       <widget class="QCheckBox" name="gf_low_at_maxdepth">
+        <property name="text">
+         <string>GFLow at max. depth</string>
         </property>
        </widget>
       </item>
@@ -200,28 +301,25 @@
         </property>
        </widget>
       </item>
-      <item row="3" column="0">
-       <widget class="QRadioButton" name="buehlmann">
+      <item row="5" column="0">
+       <widget class="QLabel" name="pSCR">
         <property name="text">
-         <string>Bühlmann</string>
-        </property>
-        <property name="checked">
-         <bool>true</bool>
+         <string>pSCR options:</string>
         </property>
        </widget>
       </item>
-      <item row="3" column="3">
-       <widget class="QLabel" name="label_GFhigh">
+      <item row="2" column="0">
+       <widget class="QRadioButton" name="vpmb">
         <property name="text">
-         <string>GFHigh</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignCenter</set>
+         <string>&amp;VPM-B</string>
         </property>
        </widget>
       </item>
       <item row="3" column="4">
        <widget class="QSpinBox" name="gfhigh">
+        <property name="suffix">
+         <string>%</string>
+        </property>
         <property name="minimum">
          <number>1</number>
         </property>
@@ -237,67 +335,6 @@
         </property>
         <property name="alignment">
          <set>Qt::AlignCenter</set>
-        </property>
-       </widget>
-      </item>
-      <item row="3" column="2">
-       <widget class="QSpinBox" name="gflow">
-        <property name="minimum">
-         <number>1</number>
-        </property>
-        <property name="maximum">
-         <number>150</number>
-        </property>
-       </widget>
-      </item>
-      <item row="4" column="2" colspan="2">
-       <widget class="QCheckBox" name="gf_low_at_maxdepth">
-        <property name="text">
-         <string>GFLow at max depth</string>
-        </property>
-       </widget>
-      </item>
-      <item row="5" column="0">
-       <widget class="QLabel" name="pSCR">
-        <property name="text">
-         <string>pSCR options:</string>
-        </property>
-       </widget>
-      </item>
-      <item row="5" column="1">
-       <widget class="QLabel" name="MetabolicRate">
-        <property name="text">
-         <string>Metabolic rate (ℓ O₂/min)</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignCenter</set>
-        </property>
-       </widget>
-      </item>
-      <item row="5" column="2">
-       <widget class="QDoubleSpinBox" name="psro2rate">
-        <property name="decimals">
-         <number>3</number>
-        </property>
-       </widget>
-      </item>
-      <item row="5" column="3">
-       <widget class="QLabel" name="label_28">
-        <property name="text">
-         <string>Dilution ratio</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignCenter</set>
-        </property>
-       </widget>
-      </item>
-      <item row="5" column="4">
-       <widget class="QSpinBox" name="pscrfactor">
-        <property name="suffix">
-         <string/>
-        </property>
-        <property name="prefix">
-         <string>1:</string>
         </property>
        </widget>
       </item>
@@ -343,7 +380,8 @@
   </layout>
  </widget>
  <tabstops>
-  <tabstop>po2Threshold</tabstop>
+  <tabstop>po2ThresholdMin</tabstop>
+  <tabstop>po2ThresholdMax</tabstop>
   <tabstop>pn2Threshold</tabstop>
   <tabstop>pheThreshold</tabstop>
   <tabstop>maxpo2</tabstop>
@@ -357,8 +395,8 @@
   <tabstop>gflow</tabstop>
   <tabstop>gfhigh</tabstop>
   <tabstop>gf_low_at_maxdepth</tabstop>
-  <tabstop>pscrfactor</tabstop>
   <tabstop>psro2rate</tabstop>
+  <tabstop>pscrfactor</tabstop>
   <tabstop>display_unused_tanks</tabstop>
   <tabstop>show_average_depth</tabstop>
  </tabstops>
