@@ -9,6 +9,8 @@
 
 #include "core/libdivecomputer.h"
 #include "desktop-widgets/configuredivecomputerdialog.h"
+#include "core/downloadfromdcthread.h"
+
 #include "ui_downloadfromdivecomputer.h"
 
 #if defined(BT_SUPPORT)
@@ -17,18 +19,6 @@
 
 class QStringListModel;
 class DiveImportedModel;
-
-class DownloadThread : public QThread {
-	Q_OBJECT
-public:
-	DownloadThread(QObject *parent, device_data_t *data);
-	virtual void run();
-
-	QString error;
-
-private:
-	device_data_t *data;
-};
 
 class DownloadFromDCWidget : public QDialog {
 	Q_OBJECT
