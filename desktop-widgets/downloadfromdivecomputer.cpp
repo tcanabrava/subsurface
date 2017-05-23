@@ -282,8 +282,8 @@ void DownloadFromDCWidget::on_downloadCancelRetryButton_clicked()
 	} else {
 		data.setDevName(ui.device->currentText());
 	}
-	//TODO: Add the descriptor function.
-	// data.descriptor = descriptorLookup[ui.vendor->currentText() + ui.product->currentText()];
+
+	data.setDescriptor(descriptorLookup[ui.vendor->currentText() + ui.product->currentText()]);
 	data.setForceDownload(ui.forceDownload->isChecked());
 	data.setCreateNewTrip(ui.createNewTrip->isChecked());
 	data.setSaveLog(ui.chooseLogFile->isChecked());

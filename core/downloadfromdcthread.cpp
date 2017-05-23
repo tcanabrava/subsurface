@@ -114,11 +114,6 @@ QString DCDeviceData::devName() const
 	return data.devname;
 }
 
-QString DCDeviceData::descriptor() const
-{
-	return "";
-}
-
 bool DCDeviceData::bluetoothMode() const
 {
 	return data.bluetooth_mode;
@@ -159,9 +154,9 @@ void DCDeviceData::setDevName(const QString& devName)
 	data.devname = strdup(qPrintable(devName));
 }
 
-void DCDeviceData::setDescriptor(const QString& descriptor)
+void DCDeviceData::setDescriptor(dc_descriptor_t *descriptor)
 {
-	// data.descriptor =
+	data.descriptor = descriptor;
 }
 
 void DCDeviceData::setBluetoothMode(bool mode)

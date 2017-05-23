@@ -15,7 +15,6 @@ class DCDeviceData : public QObject {
 	Q_PROPERTY(QString product READ product WRITE setProduct)
 	Q_PROPERTY(bool bluetoothMode READ bluetoothMode WRITE setBluetoothMode)
 	Q_PROPERTY(QString devName READ devName WRITE setDevName)
-	Q_PROPERTY(QString descriptor READ descriptor WRITE setDescriptor)
 	Q_PROPERTY(bool forceDownload READ forceDownload WRITE setForceDownload)
 	Q_PROPERTY(bool createNewTrip READ createNewTrip WRITE setCreateNewTrip)
 	Q_PROPERTY(int deviceId READ deviceId WRITE setDeviceId)
@@ -29,7 +28,6 @@ public:
 	QString vendor() const;
 	QString product() const;
 	QString devName() const;
-	QString descriptor() const;
 	bool bluetoothMode() const;
 	bool forceDownload() const;
 	bool createNewTrip() const;
@@ -39,6 +37,7 @@ public:
 	int diveId() const;
 
 	void setDiveTable(struct dive_table* downloadTable);
+	void setDescriptor(dc_descriptor_t *descriptor);
 
 	/* this needs to be a pointer to make the C-API happy */
 	device_data_t* internalData();
@@ -47,14 +46,13 @@ public slots:
 	void setVendor(const QString& vendor);
 	void setProduct(const QString& product);
 	void setDevName(const QString& devName);
-	void setDescriptor(const QString& descriptor);
 	void setBluetoothMode(bool mode);
 	void setForceDownload(bool force);
 	void setCreateNewTrip(bool create);
 	void setDeviceId(int deviceId);
 	void setDiveId(int diveId);
-    void setSaveDump(bool dumpMode);
-    void setSaveLog(bool saveLog);
+	void setSaveDump(bool dumpMode);
+	void setSaveLog(bool saveLog);
 private:
 	device_data_t data;
 };
