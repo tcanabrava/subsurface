@@ -36,8 +36,6 @@ public:
 	int deviceId() const;
 	int diveId() const;
 
-	void setDiveTable(struct dive_table* downloadTable);
-
 	/* this needs to be a pointer to make the C-API happy */
 	device_data_t* internalData();
 
@@ -58,16 +56,17 @@ private:
 
 class DownloadThread : public QThread {
 	Q_OBJECT
+	Q_PROPERTY(DCDeviceData* deviceData MEMBER m_data)
+
 public:
 	DownloadThread();
-	void setDiveTable(struct dive_table *table);
 	void run() override;
 
-	DCDeviceData& data();
+	DCDeviceData *data();
 	QString error;
 
 private:
-	DCDeviceData m_data;
+	DCDeviceData *m_data;
 };
 
 //TODO: QList<product> ?
