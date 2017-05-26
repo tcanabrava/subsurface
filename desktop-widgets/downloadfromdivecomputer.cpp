@@ -283,7 +283,6 @@ void DownloadFromDCWidget::on_downloadCancelRetryButton_clicked()
 		data.setDevName(ui.device->currentText());
 	}
 
-	data.setDescriptor(descriptorLookup[ui.vendor->currentText() + ui.product->currentText()]);
 	data.setForceDownload(ui.forceDownload->isChecked());
 	data.setCreateNewTrip(ui.createNewTrip->isChecked());
 	data.setSaveLog(ui.chooseLogFile->isChecked());

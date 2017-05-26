@@ -37,7 +37,6 @@ public:
 	int diveId() const;
 
 	void setDiveTable(struct dive_table* downloadTable);
-	void setDescriptor(dc_descriptor_t *descriptor);
 
 	/* this needs to be a pointer to make the C-API happy */
 	device_data_t* internalData();
