@@ -51,7 +51,6 @@ set (SUBSURFACE_UI
 	usersurvey.ui
 	webservices.ui
 	tab-widgets/maintab.ui
-	tab-widgets/TabDiveStatistics.ui
 	tab-widgets/TabDiveInformation.ui
 	tab-widgets/TabDivePhotos.ui
 	tab-widgets/TabDiveExtraInfo.ui
