@@ -154,10 +154,6 @@ elseif(${SUBSURFACE_TARGET_EXECUTABLE} MATCHES "MobileExecutable")
 	else()
 		set(SUBSURFACE_TARGET subsurface-mobile)
 	endif()
-	list(APPEND QT_EXTRA_COMPONENTS Quick)
-	list(APPEND QT_EXTRA_COMPONENTS QuickControls2)
-	list(APPEND QT_EXTRA_LIBRARIES Qt5::Quick)
-	list(APPEND QT_EXTRA_LIBRARIES Qt5::QuickControls2)
 	add_definitions(-DSUBSURFACE_MOBILE)
 endif()
 
@@ -211,8 +207,34 @@ if(BTSUPPORT)
 	list(APPEND QT_EXTRA_LIBRARIES Qt5::Bluetooth)
 endif()
 
-find_package(Qt5 REQUIRED COMPONENTS Core Concurrent Widgets Network Svg Test LinguistTools Positioning ${QT_EXTRA_COMPONENTS})
-set(QT_LIBRARIES Qt5::Core Qt5::Concurrent Qt5::Widgets Qt5::Network Qt5::Svg  Qt5::Positioning ${QT_EXTRA_LIBRARIES})
+find_package(Qt5 REQUIRED COMPONENTS
+    Core
+    Concurrent
+    Widgets
+    Network
+    Svg
+    Test
+    LinguistTools
+    Positioning
+    Charts
+    Quick
+    Qml
+    QuickControls2
+    ${QT_EXTRA_COMPONENTS})
+
+set(QT_LIBRARIES
+    Qt5::Core
+    Qt5::Concurrent
+    Qt5::Widgets
+    Qt5::Network
+    Qt5::Svg
+    Qt5::Positioning
+    Qt5::Charts
+    Qt5::Quick
+    Qt5::Qml
+    Qt5::QuickControls2
+    ${QT_EXTRA_LIBRARIES})
+
 set(QT_TEST_LIBRARIES ${QT_LIBRARIES} Qt5::Test)
 
 #disable bluetooth if Qt version is ancient.
