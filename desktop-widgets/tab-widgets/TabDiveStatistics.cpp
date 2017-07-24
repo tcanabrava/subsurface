@@ -5,9 +5,18 @@
 #include <core/display.h>
 #include <core/statistics.h>
 
+#include <QHBoxLayout>
+#include <QQuickWidget>
+
 TabDiveStatistics::TabDiveStatistics(QWidget *parent) : TabBase(parent)
 {
+    auto layout = new QHBoxLayout();
+    auto quickWidget = new QQuickWidget();
 
+    quickWidget->setSource(QUrl::fromLocalFile(":/qml/statistics.qml"));
+
+    layout->addWidget(quickWidget);
+    setLayout(layout);
 }
 
 TabDiveStatistics::~TabDiveStatistics()

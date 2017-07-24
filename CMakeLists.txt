@@ -219,6 +219,7 @@ find_package(Qt5 REQUIRED COMPONENTS
     Charts
     Quick
     Qml
+    QuickWidgets
     QuickControls2
     ${QT_EXTRA_COMPONENTS})
 
@@ -232,6 +233,7 @@ set(QT_LIBRARIES
     Qt5::Charts
     Qt5::Quick
     Qt5::Qml
+    Qt5::QuickWidgets
     Qt5::QuickControls2
     ${QT_EXTRA_LIBRARIES})
 

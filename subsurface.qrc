@@ -92,4 +92,7 @@
         <file alias="language">icons/language.png</file>
         <file alias="defaults">icons/defaults.png</file>
     </qresource>
+    <qresource prefix="qml">
+        <file alias="statistics.qml">qml/statistics.qml</file>
+    </qresource>
 </RCC>
