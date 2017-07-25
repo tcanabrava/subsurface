@@ -74,6 +74,25 @@ void TabDiveStatistics::clear()
 
 void TabDiveStatistics::updateData()
 {
+    QList<QString> columnNames;
+    QList<int> minValues;
+    QList<int> meanValues;
+    QList<int> maxValues;
+
+    if (stats_by_trip != NULL && stats_by_trip[0].is_trip == true) {
+        for (int i = 1; stats_by_trip != NULL && stats_by_trip[i].is_trip; ++i) {
+            auto stats = stats_by_trip[i];
+            minValues.append(stats.min_depth.mm/1000);
+            maxValues.append(stats.max_depth.mm/1000);
+            meanValues.append(stats.avg_depth.mm/1000);
+            columnNames.append(QString(stats.location));
+		}
+    }
+
+    m_columnsDepth->setColumnNames(columnNames);
+    m_columnsDepth->setMinValues(minValues);
+    m_columnsDepth->setMeanValues(meanValues);
+    m_columnsDepth->setMaxValues(maxValues);
     m_columnsDepth->changed();
 }
 
