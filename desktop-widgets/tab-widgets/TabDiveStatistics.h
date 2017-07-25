@@ -3,24 +3,36 @@
 #define TAB_DIVE_STATISTICS_H
 
 #include "TabBase.h"
+#include <QString>
+#include <QList>
 
 /* I currently have no idea on how to deal with this.
  */
 class ColumnStatisticsWrapper : public QObject {
     Q_OBJECT
+    Q_PROPERTY(QList<QString> names READ columnNames WRITE setColumnNames NOTIFY columnNamesChanged);
+    Q_PROPERTY(QList<int> meanValues READ meanValues WRITE setMinValues NOTIFY meanValuesChanged);
+    Q_PROPERTY(QList<int> meanValues READ meanValues WRITE setMeanValues NOTIFY meanValuesChanged);
+    Q_PROPERTY(QList<int> maxValues READ maxValues WRITE setMaxValues NOTIFY maxValuesChanged);
+
 public:
+    //TODO: Export the model to be used via QML
+    // Currently it's hardcoded.
+    ColumnStatisticsWrapper(QObject *parent = 0);
+
     /* for a Column based statistics, QtCharts needs vectors,
     * where each value represents a column. */
     void setColumnNames(const QList<QString>& newColumnNames);
-    void setMinValues(const QList<int>& minValues);
-    void setMeanValues(const QList<int>& meanValues);
-    void setMaxValues(const QList<int>& maxValues);
+    void setMinValues(const QList<int>& values);
+    void setMeanValues(const QList<int>& values);
+    void setMaxValues(const QList<int>& values);
 
-    Q_INVOKABLE QList<QString> columnNames();
-    Q_INVOKABLE QList<int> maxValues();
-    Q_INVOKABLE QList<int> meanValues();
-    Q_INVOKABLE QList<int> minValues();
+    QList<QString> columnNames() const;
+    QList<int> maxValues() const;
+    QList<int> minValues() const;
+    QList<int> meanValues() const;
 
+    virtual void repopulateData() = 0;
 private:
     QList<QString> m_columnNames;
     QList<int> m_meanValues;
@@ -28,7 +40,17 @@ private:
     QList<int> m_maxValues;
 
 signals:
-    void changed(); // triggered when min/max/mean value changes.
+    void columnNamesChanged(const QList<QString>& names);
+    void minValuesChanged(const QList<int>& minValues);
+    void meanValuesChanged(const QList<int>& meanValues);
+    void maxValuesChanged(const QList<int>& maxValues);
+};
+
+class TripDepthStatistics : public ColumnStatisticsWrapper {
+    Q_OBJECT
+public:
+    TripDepthStatistics(QObject *parent = 0);
+    void repopulateData() override;
 };
 
 class TabDiveStatistics : public TabBase {
@@ -39,7 +61,7 @@ public:
 	void updateData() override;
 	void clear() override;
 private:
-    ColumnStatisticsWrapper *m_columnsDepth; // if one works, all will.
+    TripDepthStatistics *m_columnsDepth; // if one works, all will.
 };
 
 #endif

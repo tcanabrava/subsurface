@@ -5,26 +5,32 @@
 #include <core/display.h>
 #include <core/statistics.h>
 
+#include <qt-models/yearlystatisticsmodel.h>
+
 #include <QHBoxLayout>
 #include <QQuickWidget>
 #include <QQmlContext>
 
-QList<QString> ColumnStatisticsWrapper::columnNames()
+ColumnStatisticsWrapper::ColumnStatisticsWrapper(QObject* parent) : QObject(parent)
+{
+}
+
+QList<QString> ColumnStatisticsWrapper::columnNames() const
 {
     return m_columnNames;
 }
 
-QList<int> ColumnStatisticsWrapper::maxValues()
+QList<int> ColumnStatisticsWrapper::maxValues() const
 {
     return m_maxValues;
 }
 
-QList<int> ColumnStatisticsWrapper::meanValues()
+QList< int > ColumnStatisticsWrapper::meanValues() const
 {
     return m_meanValues;
 }
 
-QList<int> ColumnStatisticsWrapper::minValues()
+QList<int> ColumnStatisticsWrapper::minValues() const
 {
     return m_minValues;
 }
@@ -32,47 +38,32 @@ QList<int> ColumnStatisticsWrapper::minValues()
 void ColumnStatisticsWrapper::setColumnNames(const QList<QString>& newColumnNames)
 {
     m_columnNames = newColumnNames;
+    emit columnNamesChanged(m_columnNames);
 }
 
-void ColumnStatisticsWrapper::setMaxValues(const QList<int>& maxValues)
+void ColumnStatisticsWrapper::setMaxValues(const QList<int>& values)
 {
-    m_maxValues = maxValues;
+    m_maxValues = values;
+    emit maxValuesChanged(m_maxValues);
 }
 
-void ColumnStatisticsWrapper::setMeanValues(const QList<int>& meanValues)
+void ColumnStatisticsWrapper::setMeanValues(const QList<int>& values)
 {
-    m_meanValues = meanValues;
+    m_meanValues = values;
+    emit meanValuesChanged(m_meanValues);
 }
 
-void ColumnStatisticsWrapper::setMinValues(const QList<int>& minValues)
+void ColumnStatisticsWrapper::setMinValues(const QList<int>& values)
 {
-    m_minValues = minValues;
+    m_minValues = values;
+    emit minValuesChanged(m_minValues);
 }
 
-TabDiveStatistics::TabDiveStatistics(QWidget *parent) : TabBase(parent)
-{
-    auto layout = new QHBoxLayout();
-    auto quickWidget = new QQuickWidget();
-
-    m_columnsDepth = new ColumnStatisticsWrapper();
-
-    quickWidget->rootContext()->setContextProperty("columnsDepthStatistics", m_columnsDepth);
-    quickWidget->setSource(QUrl::fromLocalFile(":/qml/statistics.qml"));
-
-    layout->addWidget(quickWidget);
-    setLayout(layout);
-}
-
-TabDiveStatistics::~TabDiveStatistics()
+TripDepthStatistics::TripDepthStatistics(QObject* parent) : ColumnStatisticsWrapper(parent)
 {
 }
 
-void TabDiveStatistics::clear()
-{
-
-}
-
-void TabDiveStatistics::updateData()
+void TripDepthStatistics::repopulateData()
 {
     QList<QString> columnNames;
     QList<int> minValues;
@@ -89,10 +80,35 @@ void TabDiveStatistics::updateData()
 		}
     }
 
-    m_columnsDepth->setColumnNames(columnNames);
-    m_columnsDepth->setMinValues(minValues);
-    m_columnsDepth->setMeanValues(meanValues);
-    m_columnsDepth->setMaxValues(maxValues);
-    m_columnsDepth->changed();
+    setColumnNames(columnNames);
+    setMinValues(minValues);
+    setMeanValues(meanValues);
+    setMaxValues(maxValues);
 }
 
+TabDiveStatistics::TabDiveStatistics(QWidget *parent) : TabBase(parent)
+{
+    auto layout = new QHBoxLayout();
+    auto quickWidget = new QQuickWidget();
+
+    m_columnsDepth = new TripDepthStatistics(this);
+
+    quickWidget->rootContext()->setContextProperty("columnsDepthStatistics", m_columnsDepth);
+    quickWidget->setSource(QUrl::fromLocalFile(":/qml/statistics.qml"));
+
+    layout->addWidget(quickWidget);
+    setLayout(layout);
+}
+
+TabDiveStatistics::~TabDiveStatistics()
+{
+}
+
+void TabDiveStatistics::clear()
+{
+}
+
+void TabDiveStatistics::updateData()
+{
+    m_columnsDepth->repopulateData();
+}
