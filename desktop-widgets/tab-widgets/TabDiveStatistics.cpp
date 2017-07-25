@@ -38,7 +38,6 @@ QVariantList ColumnStatisticsWrapper::minValues() const
 void ColumnStatisticsWrapper::setColumnNames(const QStringList& newColumnNames)
 {
     m_columnNames = newColumnNames;
-    qDebug() << newColumnNames;
     emit columnNamesChanged(m_columnNames);
 
 }
@@ -46,21 +45,18 @@ void ColumnStatisticsWrapper::setColumnNames(const QStringList& newColumnNames)
 void ColumnStatisticsWrapper::setMaxValues(const QVariantList& values)
 {
     m_maxValues = values;
-    qDebug() << "MAX" << m_maxValues;
     emit maxValuesChanged(m_maxValues);
 }
 
 void ColumnStatisticsWrapper::setMeanValues(const QVariantList& values)
 {
     m_meanValues = values;
-    qDebug() << "MEAN" << m_meanValues;
     emit meanValuesChanged(m_meanValues);
 }
 
 void ColumnStatisticsWrapper::setMinValues(const QVariantList& values)
 {
     m_minValues = values;
-    qDebug() << "MIN" << m_minValues;
     emit minValuesChanged(m_minValues);
 }
 
