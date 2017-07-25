@@ -5,15 +5,16 @@
 #include "TabBase.h"
 #include <QString>
 #include <QList>
+#include <QVariant>
 
 /* I currently have no idea on how to deal with this.
  */
 class ColumnStatisticsWrapper : public QObject {
     Q_OBJECT
-    Q_PROPERTY(QList<QString> names READ columnNames WRITE setColumnNames NOTIFY columnNamesChanged);
-    Q_PROPERTY(QList<int> meanValues READ meanValues WRITE setMinValues NOTIFY meanValuesChanged);
-    Q_PROPERTY(QList<int> meanValues READ meanValues WRITE setMeanValues NOTIFY meanValuesChanged);
-    Q_PROPERTY(QList<int> maxValues READ maxValues WRITE setMaxValues NOTIFY maxValuesChanged);
+    Q_PROPERTY(QStringList names READ columnNames WRITE setColumnNames NOTIFY columnNamesChanged);
+    Q_PROPERTY(QVariantList minValues READ minValues WRITE setMinValues NOTIFY minValuesChanged);
+    Q_PROPERTY(QVariantList meanValues READ meanValues WRITE setMeanValues NOTIFY meanValuesChanged);
+    Q_PROPERTY(QVariantList maxValues READ maxValues WRITE setMaxValues NOTIFY maxValuesChanged);
 
 public:
     //TODO: Export the model to be used via QML
@@ -22,28 +23,28 @@ public:
 
     /* for a Column based statistics, QtCharts needs vectors,
     * where each value represents a column. */
-    void setColumnNames(const QList<QString>& newColumnNames);
-    void setMinValues(const QList<int>& values);
-    void setMeanValues(const QList<int>& values);
-    void setMaxValues(const QList<int>& values);
+    void setColumnNames(const QStringList& newColumnNames);
+    void setMinValues(const  QVariantList& values);
+    void setMeanValues(const QVariantList& values);
+    void setMaxValues(const  QVariantList& values);
 
-    QList<QString> columnNames() const;
-    QList<int> maxValues() const;
-    QList<int> minValues() const;
-    QList<int> meanValues() const;
+    QStringList columnNames() const;
+    QVariantList maxValues() const;
+    QVariantList minValues() const;
+    QVariantList meanValues() const;
 
     virtual void repopulateData() = 0;
 private:
-    QList<QString> m_columnNames;
-    QList<int> m_meanValues;
-    QList<int> m_minValues;
-    QList<int> m_maxValues;
+    QStringList m_columnNames;
+    QVariantList m_meanValues;
+    QVariantList m_minValues;
+    QVariantList m_maxValues;
 
 signals:
-    void columnNamesChanged(const QList<QString>& names);
-    void minValuesChanged(const QList<int>& minValues);
-    void meanValuesChanged(const QList<int>& meanValues);
-    void maxValuesChanged(const QList<int>& maxValues);
+    void columnNamesChanged(const QStringList& names);
+    void minValuesChanged(const  QVariantList& minValues);
+    void meanValuesChanged(const QVariantList& meanValues);
+    void maxValuesChanged(const  QVariantList& maxValues);
 };
 
 class TripDepthStatistics : public ColumnStatisticsWrapper {
