@@ -32,25 +32,21 @@ QList<int> ColumnStatisticsWrapper::minValues()
 void ColumnStatisticsWrapper::setColumnNames(const QList<QString>& newColumnNames)
 {
     m_columnNames = newColumnNames;
-    emit changed();
 }
 
 void ColumnStatisticsWrapper::setMaxValues(const QList<int>& maxValues)
 {
     m_maxValues = maxValues;
-    emit changed();
 }
 
 void ColumnStatisticsWrapper::setMeanValues(const QList<int>& meanValues)
 {
     m_meanValues = meanValues;
-    emit changed();
 }
 
 void ColumnStatisticsWrapper::setMinValues(const QList<int>& minValues)
 {
     m_minValues = minValues;
-    emit changed();
 }
 
 TabDiveStatistics::TabDiveStatistics(QWidget *parent) : TabBase(parent)
@@ -78,5 +74,6 @@ void TabDiveStatistics::clear()
 
 void TabDiveStatistics::updateData()
 {
+    m_columnsDepth->changed();
 }
 
