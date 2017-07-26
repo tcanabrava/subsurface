@@ -28,7 +28,7 @@ public:
 		LeftToRight,
 		RightToLeft
 	};
-	DiveCartesianAxis(ProfileWidget2 *widget);
+	DiveCartesianAxis(ProfileWidget2 *widget = nullptr);
 	virtual ~DiveCartesianAxis();
 	void setPrintMode(bool mode);
 	void setMinimum(double minimum);
