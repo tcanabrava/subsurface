@@ -110,7 +110,6 @@ void TripDepthStatistics::repopulateData()
     }
 
     qSort(values.begin(), values.end(), [](const tripStat& a, const tripStat& b) {
-        qDebug() << std::get<2>(a) << std::get<2>(b);
         return std::get<2>(a) < std::get<2>(b);
     });
 
@@ -120,8 +119,6 @@ void TripDepthStatistics::repopulateData()
         maxValues.push_back(std::get<2>(trip)  / 1000.0);
         columnNames.push_back(std::get<3>(trip));
     }
-    qDebug() << "Depth" << meanValues;
-    qDebug() << "Max" << maxValues;
 
     setColumnNames(columnNames);
     setMinValues(minValues);
