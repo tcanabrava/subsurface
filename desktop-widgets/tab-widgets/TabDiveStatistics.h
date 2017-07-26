@@ -77,7 +77,7 @@ protected:
 private:
     void setupSceneAndFlags();
     DiveCartesianAxis *depthYAxis;
-    DiveCartesianAxis *deptyXAxis;
+    DiveCartesianAxis *depthXAxis;
 };
 
 class TabDiveStatistics : public TabBase {

@@ -149,17 +149,20 @@ void emptyList(QList<T *> &list, double steps)
 
 void DiveCartesianAxis::updateTicks(color_indice_t color)
 {
-	if (!scene() || (!changed && profileWidget && !profileWidget->getPrintMode()))
+
+	if ( profileWidget && (!scene() || (!changed && !profileWidget->getPrintMode())))
 		return;
-	QLineF m = line();
+
+    QLineF m = line();
 	// unused so far:
 	// QGraphicsView *view = scene()->views().first();
 	double steps = (max - min) / interval;
 	double currValueText = min;
 	double currValueLine = min;
 
-	if (steps < 1)
+	if (steps < 1) {
 		return;
+    }
 
 	emptyList(labels, steps);
 	emptyList(lines, steps);

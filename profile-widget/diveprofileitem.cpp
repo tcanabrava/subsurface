@@ -45,7 +45,7 @@ void AbstractProfilePolygonItem::setHorizontalDataColumn(int column)
 	modelDataChanged();
 }
 
-void AbstractProfilePolygonItem::setModel(DivePlotDataModel *model)
+void AbstractProfilePolygonItem::setModel(QAbstractTableModel *model)
 {
 	dataModel = model;
 	connect(dataModel, SIGNAL(dataChanged(QModelIndex, QModelIndex)), this, SLOT(modelDataChanged(QModelIndex, QModelIndex)));
@@ -160,7 +160,8 @@ void DiveProfileItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *o
 int DiveProfileItem::maxCeiling(int row)
 {
 	int max = -1;
-	plot_data *entry = dataModel->data().entry + row;
+    DivePlotDataModel *plotModel = qobject_cast<DivePlotDataModel*>(dataModel);
+	plot_data *entry = plotModel->data().entry + row;
 	for (int tissue = 0; tissue < 16; tissue++) {
 		if (max < entry->ceilings[tissue])
 			max = entry->ceilings[tissue];
@@ -184,16 +185,18 @@ void DiveProfileItem::modelDataChanged(const QModelIndex &topLeft, const QModelI
 	profileColor = getColor(DEPTH_BOTTOM);
 
 #ifndef SUBSURFACE_MOBILE
+    DivePlotDataModel *plotModel = qobject_cast<DivePlotDataModel*>(dataModel);
+
 	int currState = qobject_cast<ProfileWidget2 *>(scene()->views().first())->currentState;
 	if (currState == ProfileWidget2::PLAN) {
-		plot_data *entry = dataModel->data().entry;
+		plot_data *entry = plotModel->data().entry;
 		for (int i = 0; i < dataModel->rowCount(); i++, entry++) {
 			int max = maxCeiling(i);
 			// Don't scream if we violate the ceiling by a few cm
 			if (entry->depth < max - 100 && entry->sec > 0) {
 				profileColor = QColor(Qt::red);
 				if (!eventAdded) {
-					add_event(&displayed_dive.dc, entry->sec, SAMPLE_EVENT_CEILING, -1, max / 1000, 
+					add_event(&displayed_dive.dc, entry->sec, SAMPLE_EVENT_CEILING, -1, max / 1000,
 						QT_TRANSLATE_NOOP("gettextFromC", "planned waypoint above ceiling"));
 					eventAdded = true;
 				}
@@ -204,7 +207,9 @@ void DiveProfileItem::modelDataChanged(const QModelIndex &topLeft, const QModelI
 	/* Show any ceiling we may have encountered */
 	if (prefs.dcceiling && !prefs.redceiling) {
 		QPolygonF p = polygon();
-		plot_data *entry = dataModel->data().entry + dataModel->rowCount() - 1;
+        DivePlotDataModel *plotModel = qobject_cast<DivePlotDataModel*>(dataModel);
+
+		plot_data *entry = plotModel->data().entry + dataModel->rowCount() - 1;
 		for (int i = dataModel->rowCount() - 1; i >= 0; i--, entry--) {
 			if (!entry->in_deco) {
 				/* not in deco implies this is a safety stop, no ceiling */
@@ -225,7 +230,7 @@ void DiveProfileItem::modelDataChanged(const QModelIndex &topLeft, const QModelI
 
 	int last = -1;
 	for (int i = 0, count = dataModel->rowCount(); i < count; i++) {
-		struct plot_data *pd = dataModel->data().entry;
+		struct plot_data *pd = plotModel->data().entry;
 		struct plot_data *entry =  pd + i;
 		// "min/max" are the 9-minute window min/max indices
 		struct plot_data *min_entry = pd + entry->min;
@@ -631,7 +636,9 @@ void DiveMeanDepthItem::modelDataChanged(const QModelIndex &topLeft, const QMode
 		return;
 
 	QPolygonF poly;
-	plot_data *entry = dataModel->data().entry;
+    DivePlotDataModel *plotModel = qobject_cast<DivePlotDataModel*>(dataModel);
+
+	plot_data *entry = plotModel->data().entry;
 	for (int i = 0, modelDataCount = dataModel->rowCount(); i < modelDataCount; i++, entry++) {
 		// Ignore empty values
 		if (entry->running_sum == 0 || entry->sec == 0)
@@ -662,7 +669,9 @@ void DiveMeanDepthItem::paint(QPainter *painter, const QStyleOptionGraphicsItem 
 }
 
 void DiveMeanDepthItem::createTextItem() {
-	plot_data *entry = dataModel->data().entry;
+    DivePlotDataModel *plotModel = qobject_cast<DivePlotDataModel*>(dataModel);
+
+	plot_data *entry = plotModel->data().entry;
 	int sec = entry[dataModel->rowCount()-1].sec;
 	qDeleteAll(texts);
 	texts.clear();
@@ -689,9 +698,10 @@ void DiveGasPressureItem::modelDataChanged(const QModelIndex &topLeft, const QMo
 	QPolygonF poly[MAX_CYLINDERS];
 	QPolygonF boundingPoly;
 	polygons.clear();
+    DivePlotDataModel *plotModel = qobject_cast<DivePlotDataModel*>(dataModel);
 
 	for (int i = 0, count = dataModel->rowCount(); i < count; i++) {
-		struct plot_data *entry = dataModel->data().entry + i;
+		plot_data *entry = plotModel->data().entry + i;
 
 		for (int cyl = 0; cyl < MAX_CYLINDERS; cyl++) {
 			int mbar = GET_PRESSURE(entry, cyl);
@@ -750,7 +760,7 @@ void DiveGasPressureItem::modelDataChanged(const QModelIndex &topLeft, const QMo
 	double axisLog = log10(log10(axisRange));
 
 	for (int i = 0, count = dataModel->rowCount(); i < count; i++) {
-		struct plot_data *entry = dataModel->data().entry + i;
+		entry = plotModel->data().entry + i;
 
 		for (int cyl = 0; cyl < MAX_CYLINDERS; cyl++) {
 			int mbar = GET_PRESSURE(entry, cyl);
@@ -815,8 +825,10 @@ void DiveGasPressureItem::paint(QPainter *painter, const QStyleOptionGraphicsIte
 	pen.setWidth(2);
 	painter->save();
 	struct plot_data *entry;
+    DivePlotDataModel *plotModel = qobject_cast<DivePlotDataModel*>(dataModel);
+
 	Q_FOREACH (const QPolygonF &poly, polygons) {
-		entry = dataModel->data().entry;
+		entry = plotModel->data().entry;
 		for (int i = 1, count = poly.count(); i < count; i++, entry++) {
 			if (!in_planner()) {
 				if (entry->sac)
@@ -907,7 +919,9 @@ void DiveReportedCeiling::modelDataChanged(const QModelIndex &topLeft, const QMo
 
 	QPolygonF p;
 	p.append(QPointF(hAxis->posAtValue(0), vAxis->posAtValue(0)));
-	plot_data *entry = dataModel->data().entry;
+    DivePlotDataModel *plotModel = qobject_cast<DivePlotDataModel*>(dataModel);
+
+	plot_data *entry = plotModel->data().entry;
 	for (int i = 0, count = dataModel->rowCount(); i < count; i++, entry++) {
 		if (entry->in_deco && entry->stopdepth) {
 			p.append(QPointF(hAxis->posAtValue(entry->sec), vAxis->posAtValue(qMin(entry->stopdepth, entry->depth))));
@@ -932,7 +946,8 @@ void DiveReportedCeiling::modelDataChanged(const QModelIndex &topLeft, const QMo
 void DiveCalculatedCeiling::recalc()
 {
 #ifndef SUBSURFACE_MOBILE
-	dataModel->calculateDecompression();
+    DivePlotDataModel *plotModel = qobject_cast<DivePlotDataModel*>(dataModel);
+	plotModel->calculateDecompression();
 #endif
 }
 
@@ -958,7 +973,8 @@ void PartialPressureGasItem::modelDataChanged(const QModelIndex &topLeft, const 
 	if (!shouldCalculateStuff(topLeft, bottomRight))
 		return;
 
-	plot_data *entry = dataModel->data().entry;
+    DivePlotDataModel *plotModel = qobject_cast<DivePlotDataModel*>(dataModel);
+	plot_data *entry = plotModel->data().entry;
 	QPolygonF poly;
 	QPolygonF alertpoly;
 	alertPolygons.clear();

@@ -132,23 +132,51 @@ void TripDepthStatistics::repopulateData()
 
 DiveStatisticsView::DiveStatisticsView(QWidget* parent) : QGraphicsView(parent)
 {
+    setupSceneAndFlags();
+
+    depthYAxis = new DiveCartesianAxis();
+    depthYAxis->setOrientation(DiveCartesianAxis::TopToBottom);
+    depthYAxis->setMinimum(0);
+    depthYAxis->setMaximum(64);
+    depthYAxis->setTickInterval(5);
+    depthYAxis->setTickSize(0.5);
+    depthYAxis->setLineSize(96);
+    depthYAxis->setPos(3,3);
+    depthYAxis->setVisible(true);
+    depthYAxis->setLine(QLineF(0,0,0,90));
+
+    depthXAxis = new DiveCartesianAxis();
+    depthXAxis->setMinimum(0);
+    depthXAxis->setMaximum(11);
+    depthXAxis->setTickInterval(1);
+    depthXAxis->setTickSize(0.5);
+    depthXAxis->setLineSize(96);
+    depthXAxis->setPos(3,95);
+    depthXAxis->setVisible(true);
+    depthXAxis->setLine(QLine(0,0,90,0));
+
+    scene()->addItem(depthYAxis);
+    scene()->addItem(depthXAxis);
 }
 
 void DiveStatisticsView::setupSceneAndFlags()
 {
-	setScene(new QGraphicsScene(this));
-	scene()->setSceneRect(0, 0, 100, 100);
-	setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-	setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-	scene()->setItemIndexMethod(QGraphicsScene::NoIndex);
-	setOptimizationFlags(QGraphicsView::DontSavePainterState);
-	setViewportUpdateMode(QGraphicsView::BoundingRectViewportUpdate);
-	setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing | QPainter::SmoothPixmapTransform);
-	setMouseTracking(true);
+    setScene(new QGraphicsScene(this));
+    scene()->setSceneRect(0, 0, 100, 100);
+    setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    scene()->setItemIndexMethod(QGraphicsScene::NoIndex);
+    setOptimizationFlags(QGraphicsView::DontSavePainterState);
+    setViewportUpdateMode(QGraphicsView::BoundingRectViewportUpdate);
+    setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing | QPainter::SmoothPixmapTransform);
+    setMouseTracking(true);
+    setBackgroundBrush(getColor(::BACKGROUND));
 }
 
 void DiveStatisticsView::refreshContents()
 {
+    depthYAxis->updateTicks();
+    depthXAxis->updateTicks();
 }
 
 void DiveStatisticsView::resizeEvent(QResizeEvent* event)
@@ -160,6 +188,7 @@ void DiveStatisticsView::resizeEvent(QResizeEvent* event)
 TabDiveStatistics::TabDiveStatistics(QWidget *parent) : TabBase(parent)
 {
     auto layout = new QHBoxLayout();
+    auto *statistics = new DiveStatisticsView(this);
 
     /* TODO: Maybe restore this later, for now it's broken.
     auto quickWidget = new QQuickWidget();
@@ -168,7 +197,7 @@ TabDiveStatistics::TabDiveStatistics(QWidget *parent) : TabBase(parent)
     quickWidget->setSource(QUrl::fromLocalFile(":/qml/statistics.qml"));
     layout->addWidget(quickWidget);
     */
-
+    layout->addWidget(statistics);
     setLayout(layout);
 }
 

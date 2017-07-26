@@ -60,8 +60,13 @@ void DiveTextItem::setText(const QString &t)
 				// by now we should be on a scene. grab the profile widget from it and setup our printScale
 				// and connect to the signal that makes sure we keep track if that changes
 				ProfileWidget2 *profile = qobject_cast<ProfileWidget2 *>(scene()->views().first());
-				connect(profile, SIGNAL(fontPrintScaleChanged(double)), this, SLOT(fontPrintScaleUpdate(double)), Qt::UniqueConnection);
-				fontPrintScaleUpdate(profile->getFontPrintScale());
+                if (profile) {
+                    connect(profile, SIGNAL(fontPrintScaleChanged(double)), this, SLOT(fontPrintScaleUpdate(double)), Qt::UniqueConnection);
+                    fontPrintScaleUpdate(profile->getFontPrintScale());
+                } else {
+                    fontPrintScaleUpdate(1.0);
+                }
+
 				connected = true;
 			} else {
 				if (verbose)

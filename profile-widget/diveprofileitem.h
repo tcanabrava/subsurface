@@ -38,7 +38,7 @@ public:
 	AbstractProfilePolygonItem();
 	void setVerticalAxis(DiveCartesianAxis *vertical);
 	void setHorizontalAxis(DiveCartesianAxis *horizontal);
-	void setModel(DivePlotDataModel *model);
+	void setModel(QAbstractTableModel *model);
 	void setHorizontalDataColumn(int column);
 	void setVerticalDataColumn(int column);
 	virtual void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget = 0) = 0;
@@ -64,7 +64,7 @@ protected:
 
 	DiveCartesianAxis *hAxis;
 	DiveCartesianAxis *vAxis;
-	DivePlotDataModel *dataModel;
+	QAbstractTableModel *dataModel;
 	int hDataColumn;
 	int vDataColumn;
 	QList<DiveTextItem *> texts;
