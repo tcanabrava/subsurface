@@ -185,6 +185,15 @@ void DiveStatisticsView::resizeEvent(QResizeEvent* event)
     fitInView(sceneRect(), Qt::IgnoreAspectRatio);
 }
 
+StatisticsItem::StatisticsItem()
+{
+}
+
+void StatisticsItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+{
+}
+
+
 TabDiveStatistics::TabDiveStatistics(QWidget *parent) : TabBase(parent),
  m_statisticsView(new DiveStatisticsView(this))
 {

@@ -8,6 +8,8 @@
 #include <QVariant>
 #include <QGraphicsView>
 
+#include <profile-widget/diveprofileitem.h>
+
 class DiveCartesianAxis;
 
 /* I currently have no idea on how to deal with this.
@@ -65,6 +67,13 @@ class TripDepthStatistics : public ColumnStatisticsWrapper {
 public:
     TripDepthStatistics(QObject *parent = 0);
     void repopulateData() override;
+};
+
+class StatisticsItem : public AbstractProfilePolygonItem {
+	Q_OBJECT
+public:
+	StatisticsItem();
+	void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override;
 };
 
 class DiveStatisticsView : public QGraphicsView {
