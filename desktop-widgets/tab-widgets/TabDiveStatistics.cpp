@@ -7,6 +7,8 @@
 #include <core/display.h>
 #include <core/statistics.h>
 
+#include <profile-widget/divecartesianaxis.h>
+
 #include <qt-models/yearlystatisticsmodel.h>
 
 #include <QHBoxLayout>
@@ -128,10 +130,36 @@ void TripDepthStatistics::repopulateData()
     setMax(maxValues.count() ? maxValues.last().toInt() : 0);
 }
 
+DiveStatisticsView::DiveStatisticsView(QWidget* parent) : QGraphicsView(parent)
+{
+}
+
+void DiveStatisticsView::setupSceneAndFlags()
+{
+	setScene(new QGraphicsScene(this));
+	scene()->setSceneRect(0, 0, 100, 100);
+	setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+	setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+	scene()->setItemIndexMethod(QGraphicsScene::NoIndex);
+	setOptimizationFlags(QGraphicsView::DontSavePainterState);
+	setViewportUpdateMode(QGraphicsView::BoundingRectViewportUpdate);
+	setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing | QPainter::SmoothPixmapTransform);
+	setMouseTracking(true);
+}
+
+void DiveStatisticsView::refreshContents()
+{
+}
+
+void DiveStatisticsView::resizeEvent(QResizeEvent* event)
+{
+    QGraphicsView::resizeEvent(event);
+    fitInView(sceneRect(), Qt::IgnoreAspectRatio);
+}
+
 TabDiveStatistics::TabDiveStatistics(QWidget *parent) : TabBase(parent)
 {
     auto layout = new QHBoxLayout();
-    m_columnsDepth = new TripDepthStatistics(this);
 
     /* TODO: Maybe restore this later, for now it's broken.
     auto quickWidget = new QQuickWidget();
@@ -154,5 +182,4 @@ void TabDiveStatistics::clear()
 
 void TabDiveStatistics::updateData()
 {
-    m_columnsDepth->repopulateData();
 }

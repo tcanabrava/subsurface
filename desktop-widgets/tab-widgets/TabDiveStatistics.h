@@ -6,6 +6,9 @@
 #include <QString>
 #include <QList>
 #include <QVariant>
+#include <QGraphicsView>
+
+class DiveCartesianAxis;
 
 /* I currently have no idea on how to deal with this.
  */
@@ -64,6 +67,19 @@ public:
     void repopulateData() override;
 };
 
+class DiveStatisticsView : public QGraphicsView {
+    Q_OBJECT
+public:
+    DiveStatisticsView(QWidget *parent);
+    void refreshContents();
+protected:
+    void resizeEvent(QResizeEvent * event) override;
+private:
+    void setupSceneAndFlags();
+    DiveCartesianAxis *depthYAxis;
+    DiveCartesianAxis *deptyXAxis;
+};
+
 class TabDiveStatistics : public TabBase {
 	Q_OBJECT
 public:
@@ -71,8 +87,6 @@ public:
 	~TabDiveStatistics();
 	void updateData() override;
 	void clear() override;
-private:
-    TripDepthStatistics *m_columnsDepth; // if one works, all will.
 };
 
 #endif
