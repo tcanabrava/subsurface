@@ -5,7 +5,7 @@ import QtCharts 2.0
 ChartView {
     antialiasing: true
 
-    StackedBarSeries {
+    BarSeries {
         id: tripDepthSeries
         labelsPosition: AbstractBarSeries.LabelsInsideBase;
 
@@ -14,7 +14,7 @@ ChartView {
 
 
         BarSet { label: "min"; values: columnsDepthStatistics.minValues }
+        BarSet { label: "mean"; values: columnsDepthStatistics.meanValues }
         BarSet { label: "max"; values: columnsDepthStatistics.maxValues }
-        BarSet { label: "mean"; values: columnsDepthStatistics.minValues }
     }
 }

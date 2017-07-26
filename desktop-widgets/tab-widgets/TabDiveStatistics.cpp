@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: GPL-2.0
 #include "TabDiveStatistics.h"
 
+#include <tuple>
+
 #include <core/helpers.h>
 #include <core/display.h>
 #include <core/statistics.h>
@@ -93,28 +95,40 @@ void TripDepthStatistics::repopulateData()
     QVariantList minValues;
     QVariantList meanValues;
     QVariantList maxValues;
-    qreal currMax = INT_MIN;
+    typedef std::tuple<int,int,int,QString> tripStat;
+    std::vector<tripStat> values;
+
     if (stats_by_trip != NULL && stats_by_trip[0].is_trip == true) {
         for (int i = 1; stats_by_trip != NULL && stats_by_trip[i].is_trip; ++i) {
             auto stats = stats_by_trip[i];
-            qreal max = stats.max_depth.mm/1000.0;
-            if (max > currMax) {
-                currMax =  max;
-            }
+            auto min = stats.min_depth.mm;
+            auto mean = stats.avg_depth.mm;
+            auto max = stats.max_depth.mm;
 
-            maxValues.append(QVariant::fromValue(max));
-            meanValues.append(QVariant::fromValue(stats.avg_depth.mm/1000.0));
-            minValues.append(QVariant::fromValue(stats.min_depth.mm/1000.0));
-            columnNames.append(QString(stats.location));
+            values.push_back({min, mean, max, QString(stats.location)});
         }
     }
+
+    qSort(values.begin(), values.end(), [](const tripStat& a, const tripStat& b) {
+        qDebug() << std::get<2>(a) << std::get<2>(b);
+        return std::get<2>(a) < std::get<2>(b);
+    });
+
+    for(const auto& trip : values) {
+        minValues.push_back(std::get<0>(trip)  / 1000.0);
+        meanValues.push_back(std::get<1>(trip) / 1000.0);
+        maxValues.push_back(std::get<2>(trip)  / 1000.0);
+        columnNames.push_back(std::get<3>(trip));
+    }
+    qDebug() << "Depth" << meanValues;
+    qDebug() << "Max" << maxValues;
 
     setColumnNames(columnNames);
     setMinValues(minValues);
     setMeanValues(meanValues);
     setMaxValues(maxValues);
     setMin(0);
-    setMax(currMax);
+    setMax(maxValues.count() ? maxValues.last().toInt() : 0);
 }
 
 TabDiveStatistics::TabDiveStatistics(QWidget *parent) : TabBase(parent)
