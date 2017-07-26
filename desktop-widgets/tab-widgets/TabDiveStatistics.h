@@ -87,6 +87,8 @@ public:
 	~TabDiveStatistics();
 	void updateData() override;
 	void clear() override;
+private:
+    DiveStatisticsView *m_statisticsView;
 };
 
 #endif

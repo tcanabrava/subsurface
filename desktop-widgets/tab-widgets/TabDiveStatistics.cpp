@@ -185,10 +185,10 @@ void DiveStatisticsView::resizeEvent(QResizeEvent* event)
     fitInView(sceneRect(), Qt::IgnoreAspectRatio);
 }
 
-TabDiveStatistics::TabDiveStatistics(QWidget *parent) : TabBase(parent)
+TabDiveStatistics::TabDiveStatistics(QWidget *parent) : TabBase(parent),
+ m_statisticsView(new DiveStatisticsView(this))
 {
     auto layout = new QHBoxLayout();
-    auto *statistics = new DiveStatisticsView(this);
 
     /* TODO: Maybe restore this later, for now it's broken.
     auto quickWidget = new QQuickWidget();
@@ -197,7 +197,7 @@ TabDiveStatistics::TabDiveStatistics(QWidget *parent) : TabBase(parent)
     quickWidget->setSource(QUrl::fromLocalFile(":/qml/statistics.qml"));
     layout->addWidget(quickWidget);
     */
-    layout->addWidget(statistics);
+    layout->addWidget(m_statisticsView);
     setLayout(layout);
 }
 
@@ -211,4 +211,5 @@ void TabDiveStatistics::clear()
 
 void TabDiveStatistics::updateData()
 {
+    m_statisticsView->refreshContents();
 }
