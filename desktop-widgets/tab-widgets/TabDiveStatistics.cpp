@@ -131,15 +131,16 @@ void TripDepthStatistics::repopulateData()
 TabDiveStatistics::TabDiveStatistics(QWidget *parent) : TabBase(parent)
 {
     auto layout = new QHBoxLayout();
-    auto quickWidget = new QQuickWidget();
-
-    quickWidget->setResizeMode(QQuickWidget::SizeRootObjectToView);
     m_columnsDepth = new TripDepthStatistics(this);
 
+    /* TODO: Maybe restore this later, for now it's broken.
+    auto quickWidget = new QQuickWidget();
+    quickWidget->setResizeMode(QQuickWidget::SizeRootObjectToView);
     quickWidget->rootContext()->setContextProperty("columnsDepthStatistics", m_columnsDepth);
     quickWidget->setSource(QUrl::fromLocalFile(":/qml/statistics.qml"));
-
     layout->addWidget(quickWidget);
+    */
+
     setLayout(layout);
 }
 
