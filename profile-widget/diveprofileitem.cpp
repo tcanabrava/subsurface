@@ -103,6 +103,8 @@ void AbstractProfilePolygonItem::modelDataChanged(const QModelIndex &topLeft, co
 	// regarting our cartesian plane ( made by the hAxis and vAxis ), the QPolygonF
 	// is an array of QPointF's, so we basically get the point from the model, convert
 	// to our coordinates, store. no painting is done here.
+    if (!dataModel)
+        return;
 	QPolygonF poly;
 	for (int i = 0, modelDataCount = dataModel->rowCount(); i < modelDataCount; i++) {
 		qreal horizontalValue = dataModel->index(i, hDataColumn).data().toReal();

@@ -87,6 +87,10 @@ private:
     void setupSceneAndFlags();
     DiveCartesianAxis *depthYAxis;
     DiveCartesianAxis *depthXAxis;
+
+    StatisticsItem *depthMinCurve;
+    StatisticsItem *depthAvgCurve;
+    StatisticsItem *depthMaxCurve;
 };
 
 class TabDiveStatistics : public TabBase {

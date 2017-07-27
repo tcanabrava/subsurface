@@ -155,6 +155,17 @@ DiveStatisticsView::DiveStatisticsView(QWidget* parent) : QGraphicsView(parent)
     depthXAxis->setVisible(true);
     depthXAxis->setLine(QLine(0,0,90,0));
 
+    depthMinCurve = new StatisticsItem();
+    depthMaxCurve = new StatisticsItem();
+    depthAvgCurve = new StatisticsItem();
+
+    depthMinCurve->setHorizontalAxis(depthXAxis);
+    depthMinCurve->setVerticalAxis(depthYAxis);
+    depthAvgCurve->setHorizontalAxis(depthXAxis);
+    depthAvgCurve->setVerticalAxis(depthYAxis);
+    depthMaxCurve->setHorizontalAxis(depthXAxis);
+    depthMaxCurve->setVerticalAxis(depthYAxis);
+
     scene()->addItem(depthYAxis);
     scene()->addItem(depthXAxis);
 }
@@ -207,6 +218,8 @@ TabDiveStatistics::TabDiveStatistics(QWidget *parent) : TabBase(parent),
     layout->addWidget(quickWidget);
     */
     layout->addWidget(m_statisticsView);
+
+
     setLayout(layout);
 }
 
