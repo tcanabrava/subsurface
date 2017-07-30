@@ -308,6 +308,7 @@ qreal DiveCartesianAxis::valueAt(const QPointF &p) const
 				  max * (relativePosition.y() - m.y1()) / (m.y2() - m.y1());
 	return retValue;
 }
+#include <QDebug>
 
 qreal DiveCartesianAxis::posAtValue(qreal value)
 {
@@ -334,6 +335,10 @@ qreal DiveCartesianAxis::posAtValue(qreal value)
 		orientation == RightToLeft ? retValue + m.x1() + p.x() :
 		orientation == TopToBottom ? retValue + m.y1() + p.y() :
 		/* entation == BottomToTop */ retValue + m.y1() + p.y();
+
+    if (adjusted == 3) {
+        qDebug() << "Max" << max << "Min" << min << "value" << value;
+    }
 	return adjusted;
 }
 

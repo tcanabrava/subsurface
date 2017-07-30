@@ -35,7 +35,7 @@ void AbstractProfilePolygonItem::setVisible(bool visible)
 void AbstractProfilePolygonItem::setHorizontalAxis(DiveCartesianAxis *horizontal)
 {
 	hAxis = horizontal;
-	connect(hAxis, SIGNAL(sizeChanged()), this, SLOT(modelDataChanged()));
+	connect(hAxis, &DiveCartesianAxis::sizeChanged, [this]{ modelDataChanged(); });
 	modelDataChanged();
 }
 
@@ -48,8 +48,9 @@ void AbstractProfilePolygonItem::setHorizontalDataColumn(int column)
 void AbstractProfilePolygonItem::setModel(QAbstractTableModel *model)
 {
 	dataModel = model;
-	connect(dataModel, SIGNAL(dataChanged(QModelIndex, QModelIndex)), this, SLOT(modelDataChanged(QModelIndex, QModelIndex)));
-	connect(dataModel, SIGNAL(rowsAboutToBeRemoved(QModelIndex, int, int)), this, SLOT(modelDataRemoved(QModelIndex, int, int)));
+	connect(dataModel, &QAbstractItemModel::dataChanged, this, &AbstractProfilePolygonItem::modelDataChanged);
+    connect(dataModel, &QAbstractItemModel::modelReset, [this] { modelDataChanged();});
+	connect(dataModel, &QAbstractItemModel::rowsAboutToBeRemoved, this, &AbstractProfilePolygonItem::modelDataRemoved);
 	modelDataChanged();
 }
 
@@ -66,8 +67,8 @@ void AbstractProfilePolygonItem::modelDataRemoved(const QModelIndex &parent, int
 void AbstractProfilePolygonItem::setVerticalAxis(DiveCartesianAxis *vertical)
 {
 	vAxis = vertical;
-	connect(vAxis, SIGNAL(sizeChanged()), this, SLOT(modelDataChanged()));
-	connect(vAxis, SIGNAL(maxChanged()), this, SLOT(modelDataChanged()));
+	connect(vAxis, &DiveCartesianAxis::sizeChanged, [this] { modelDataChanged();});
+	connect(vAxis, &DiveCartesianAxis::maxChanged, [this] { modelDataChanged();});
 	modelDataChanged();
 }
 
@@ -94,6 +95,8 @@ bool AbstractProfilePolygonItem::shouldCalculateStuff(const QModelIndex &topLeft
 	return true;
 }
 
+#include <QDebug>
+
 void AbstractProfilePolygonItem::modelDataChanged(const QModelIndex &topLeft, const QModelIndex &bottomRight)
 {
 	Q_UNUSED(topLeft);
@@ -105,10 +108,13 @@ void AbstractProfilePolygonItem::modelDataChanged(const QModelIndex &topLeft, co
 	// to our coordinates, store. no painting is done here.
     if (!dataModel)
         return;
+
 	QPolygonF poly;
 	for (int i = 0, modelDataCount = dataModel->rowCount(); i < modelDataCount; i++) {
 		qreal horizontalValue = dataModel->index(i, hDataColumn).data().toReal();
 		qreal verticalValue = dataModel->index(i, vDataColumn).data().toReal();
+        if (objectName() == "WEE")
+            qDebug() << "(" << horizontalValue <<"," << hAxis->posAtValue(horizontalValue) << ")";
 		QPointF point(hAxis->posAtValue(horizontalValue), vAxis->posAtValue(verticalValue));
 		poly.append(point);
 	}

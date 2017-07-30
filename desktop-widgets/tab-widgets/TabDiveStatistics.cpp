@@ -15,125 +15,11 @@
 #include <QQuickWidget>
 #include <QQmlContext>
 
-ColumnStatisticsWrapper::ColumnStatisticsWrapper(QObject* parent) : QObject(parent)
-{
-}
-
-QStringList ColumnStatisticsWrapper::columnNames() const
-{
-    return m_columnNames;
-}
-
-QVariantList ColumnStatisticsWrapper::maxValues() const
-{
-    return m_maxValues;
-}
-
-QVariantList ColumnStatisticsWrapper::meanValues() const
-{
-    return m_meanValues;
-}
-
-QVariantList ColumnStatisticsWrapper::minValues() const
-{
-    return m_minValues;
-}
-
-void ColumnStatisticsWrapper::setColumnNames(const QStringList& newColumnNames)
-{
-    m_columnNames = newColumnNames;
-    emit columnNamesChanged(m_columnNames);
-
-}
-
-void ColumnStatisticsWrapper::setMaxValues(const QVariantList& values)
-{
-    m_maxValues = values;
-    emit maxValuesChanged(m_maxValues);
-}
-
-void ColumnStatisticsWrapper::setMeanValues(const QVariantList& values)
-{
-    m_meanValues = values;
-    emit meanValuesChanged(m_meanValues);
-}
-
-void ColumnStatisticsWrapper::setMinValues(const QVariantList& values)
-{
-    m_minValues = values;
-    emit minValuesChanged(m_minValues);
-}
-
-qreal ColumnStatisticsWrapper::max() const
-{
-    return m_max;
-}
-
-qreal ColumnStatisticsWrapper::min() const
-{
-    return m_min;
-}
-
-void ColumnStatisticsWrapper::setMax(qreal max)
-{
-    m_max = max;
-    emit maxChanged(m_max);
-}
-
-void ColumnStatisticsWrapper::setMin(qreal min)
-{
-    m_min = min;
-    emit minChanged(m_min);
-}
-
-
-TripDepthStatistics::TripDepthStatistics(QObject* parent) : ColumnStatisticsWrapper(parent)
-{
-}
-
-void TripDepthStatistics::repopulateData()
-{
-    QList<QString> columnNames;
-    QVariantList minValues;
-    QVariantList meanValues;
-    QVariantList maxValues;
-    typedef std::tuple<int,int,int,QString> tripStat;
-    std::vector<tripStat> values;
-
-    if (stats_by_trip != NULL && stats_by_trip[0].is_trip == true) {
-        for (int i = 1; stats_by_trip != NULL && stats_by_trip[i].is_trip; ++i) {
-            auto stats = stats_by_trip[i];
-            auto min = stats.min_depth.mm;
-            auto mean = stats.avg_depth.mm;
-            auto max = stats.max_depth.mm;
-
-            values.push_back({min, mean, max, QString(stats.location)});
-        }
-    }
-
-    qSort(values.begin(), values.end(), [](const tripStat& a, const tripStat& b) {
-        return std::get<2>(a) < std::get<2>(b);
-    });
-
-    for(const auto& trip : values) {
-        minValues.push_back(std::get<0>(trip)  / 1000.0);
-        meanValues.push_back(std::get<1>(trip) / 1000.0);
-        maxValues.push_back(std::get<2>(trip)  / 1000.0);
-        columnNames.push_back(std::get<3>(trip));
-    }
-
-    setColumnNames(columnNames);
-    setMinValues(minValues);
-    setMeanValues(meanValues);
-    setMaxValues(maxValues);
-    setMin(0);
-    setMax(maxValues.count() ? maxValues.last().toInt() : 0);
-}
-
 DiveStatisticsView::DiveStatisticsView(QWidget* parent) : QGraphicsView(parent)
 {
     setupSceneAndFlags();
 
+    depthModel = new MinAvgMaxModel();
     depthYAxis = new DiveCartesianAxis();
     depthYAxis->setOrientation(DiveCartesianAxis::TopToBottom);
     depthYAxis->setMinimum(0);
@@ -159,13 +45,39 @@ DiveStatisticsView::DiveStatisticsView(QWidget* parent) : QGraphicsView(parent)
     depthMaxCurve = new StatisticsItem();
     depthAvgCurve = new StatisticsItem();
 
+    // Setup Models
+    depthMinCurve->setObjectName("WEE");
+    depthMinCurve->setModel(depthModel);
+    depthMinCurve->setVerticalDataColumn(MinAvgMaxModel::MIN);
+    depthMinCurve->setHorizontalDataColumn(MinAvgMaxModel::IDX);
+
+    depthAvgCurve->setModel(depthModel);
+    depthAvgCurve->setVerticalDataColumn(MinAvgMaxModel::AVG);
+    depthAvgCurve->setHorizontalDataColumn(MinAvgMaxModel::IDX);
+
+    depthMaxCurve->setModel(depthModel);
+    depthMaxCurve->setVerticalDataColumn(MinAvgMaxModel::MAX);
+    depthMaxCurve->setHorizontalDataColumn(MinAvgMaxModel::IDX);
+
     depthMinCurve->setHorizontalAxis(depthXAxis);
     depthMinCurve->setVerticalAxis(depthYAxis);
+
     depthAvgCurve->setHorizontalAxis(depthXAxis);
     depthAvgCurve->setVerticalAxis(depthYAxis);
+
     depthMaxCurve->setHorizontalAxis(depthXAxis);
     depthMaxCurve->setVerticalAxis(depthYAxis);
 
+    depthMinCurve->setZValue(10);
+    depthAvgCurve->setZValue(5);
+    depthMaxCurve->setZValue(1);
+
+    depthMinCurve->setVisible(true);
+    depthMaxCurve->setVisible(true);
+    depthAvgCurve->setVisible(true);
+    scene()->addItem(depthMinCurve);
+    scene()->addItem(depthAvgCurve);
+    scene()->addItem(depthMaxCurve);
     scene()->addItem(depthYAxis);
     scene()->addItem(depthXAxis);
 }
@@ -186,6 +98,24 @@ void DiveStatisticsView::setupSceneAndFlags()
 
 void DiveStatisticsView::refreshContents()
 {
+    qreal biggerMax = 0;
+    QVector<MinimalStatistics> values;
+    if (stats_by_trip != NULL && stats_by_trip[0].is_trip == true) {
+        for (int i = 1; stats_by_trip != NULL && stats_by_trip[i].is_trip; ++i) {
+            auto stats = stats_by_trip[i];
+            qreal min = stats.min_depth.mm / 1000.0;
+            qreal mean = stats.avg_depth.mm / 1000.0;
+            qreal max = stats.max_depth.mm / 1000.0;
+            biggerMax = qMax(biggerMax, max);
+            values.push_back({min, mean, max, QString(stats.location)});
+        }
+    }
+
+    depthXAxis->setMaximum(values.count());
+    depthYAxis->setMaximum(biggerMax);
+
+    depthModel->setStatisticsData(values);
+
     depthYAxis->updateTicks();
     depthXAxis->updateTicks();
 }
@@ -196,12 +126,71 @@ void DiveStatisticsView::resizeEvent(QResizeEvent* event)
     fitInView(sceneRect(), Qt::IgnoreAspectRatio);
 }
 
+#include <QColor>
+
 StatisticsItem::StatisticsItem()
 {
+    setBrush(QBrush(QColor(0,0,0)));
 }
 
 void StatisticsItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
+	Q_UNUSED(widget);
+	if (polygon().isEmpty())
+		return;
+
+	painter->save();
+	// This paints the Polygon + Background. I'm setting the pen to QPen() so we don't get a black line here,
+	// after all we need to plot the correct velocities colors later.
+	setPen(Qt::NoPen);
+	QGraphicsPolygonItem::paint(painter, option, widget);
+    painter->restore();
+}
+
+MinAvgMaxModel::MinAvgMaxModel(QObject* parent)
+{
+}
+
+int MinAvgMaxModel::columnCount(const QModelIndex& parent) const
+{
+    return COLUMNS;
+}
+
+int MinAvgMaxModel::rowCount(const QModelIndex& parent) const
+{
+    return m_values.count();
+}
+
+void MinAvgMaxModel::setStatisticsData(const QVector<MinimalStatistics>& values)
+{
+    beginResetModel();
+    m_values = values;
+    qDebug() << "Model Changed!" << m_values.size();
+    endResetModel();
+}
+
+void MinAvgMaxModel::sortBy(MinAvgMaxModel::Column column)
+{
+    Q_UNUSED(column);
+}
+
+QVariant MinAvgMaxModel::data(const QModelIndex& index, int role) const
+{
+    if (!index.isValid()) {
+        return {};
+    }
+    if(role != Qt::DisplayRole) {
+        return {};
+    }
+
+    switch(index.column()) {
+        case IDX : return index.row();
+        case MIN : return m_values.at(index.row()).min;
+        case AVG : return m_values.at(index.row()).avg;
+        case MAX : return m_values.at(index.row()).max;
+        case INFO: return m_values.at(index.row()).info;
+    }
+    return {};
 }
 
 
