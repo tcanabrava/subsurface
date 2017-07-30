@@ -768,7 +768,7 @@ void DiveGasPressureItem::modelDataChanged(const QModelIndex &topLeft, const QMo
 	double axisLog = log10(log10(axisRange));
 
 	for (int i = 0, count = dataModel->rowCount(); i < count; i++) {
-		entry = plotModel->data().entry + i;
+		plot_data *entry = plotModel->data().entry + i;
 
 		for (int cyl = 0; cyl < MAX_CYLINDERS; cyl++) {
 			int mbar = GET_PRESSURE(entry, cyl);
