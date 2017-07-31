@@ -223,6 +223,8 @@ find_package(Qt5 REQUIRED COMPONENTS
     QuickControls2
     ${QT_EXTRA_COMPONENTS})
 
+find_package(Qwt6 REQUIRED)
+
 set(QT_LIBRARIES
     Qt5::Core
     Qt5::Concurrent
@@ -235,9 +237,12 @@ set(QT_LIBRARIES
     Qt5::Qml
     Qt5::QuickWidgets
     Qt5::QuickControls2
+    ${QWT_LIBRARIES}
     ${QT_EXTRA_LIBRARIES})
 
 set(QT_TEST_LIBRARIES ${QT_LIBRARIES} Qt5::Test)
+
+include_directories(${QWT_INCLUDE_DIR})
 
 #disable bluetooth if Qt version is ancient.
 if (BTSUPPORT AND "${Qt5Core_VERSION}" VERSION_LESS 5.4.0)
