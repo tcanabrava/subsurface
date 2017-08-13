@@ -160,8 +160,8 @@ void DepthQwtPlot::insertCurve( const QString& title,
     d_curve->setStyle( QwtPlotCurve::NoCurve );
     d_curve->setLegendAttribute( QwtPlotCurve::LegendShowSymbol );
 
-    QwtSymbol *symbol = new QwtSymbol( QwtSymbol::XCross );
-    symbol->setSize( 4 );
+    QwtSymbol *symbol = new QwtSymbol( QwtSymbol::HLine );
+    symbol->setSize( 12 );
     symbol->setPen( color );
     d_curve->setSymbol( symbol );
 
@@ -187,13 +187,13 @@ void DepthQwtPlot::insertErrorBars(
     d_intervalCurve->setSamples( samples );
     d_intervalCurve->setStyle( QwtPlotIntervalCurve::NoCurve );
 
-    QColor c( d_intervalCurve->brush().color().rgb() ); // skip alpha
+    QColor c( d_intervalCurve->brush().color().rgba() ); // skip alpha
 
     QwtIntervalSymbol *errorBar =
         new QwtIntervalSymbol( QwtIntervalSymbol::Box );
-    errorBar->setWidth( 8 ); // should be something even
-    errorBar->setPen( c );
-
+    errorBar->setWidth( 12 ); // should be something even
+    errorBar->setPen(c);
+    errorBar->setBrush(c);
     d_intervalCurve->setSymbol( errorBar );
     d_intervalCurve->setRenderHint( QwtPlotItem::RenderAntialiased, false );
 
