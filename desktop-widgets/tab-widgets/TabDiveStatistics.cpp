@@ -58,10 +58,12 @@ public:
 
     virtual QwtText label( double value ) const
     {
-        qDebug() << "value" << value;
         int pos = value;
         if (tripNames.count() <= pos)
             return QString();
+        if (tripNames.at(pos).isEmpty()) {
+            return QObject::tr("No trip");
+        }
         return tripNames.at(pos);
     }
 
@@ -138,7 +140,7 @@ DepthQwtPlot::DepthQwtPlot() : d_intervalCurve(nullptr), d_curve(nullptr)
     setAxisTitle( QwtPlot::yLeft, QString( "Depth / Meters" ));
 
     QwtPlotCanvas *canvas = new QwtPlotCanvas();
-    canvas->setPalette( Qt::darkGray );
+    canvas->setPalette( palette() );
     canvas->setBorderRadius( 10 );
 
     insertLegend( new QwtLegend(), QwtPlot::RightLegend );
