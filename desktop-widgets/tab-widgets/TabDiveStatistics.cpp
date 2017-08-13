@@ -12,6 +12,7 @@
 #include <QHBoxLayout>
 #include <QQuickWidget>
 #include <QQmlContext>
+#include <QTableView>
 
 MinAvgMaxModel::MinAvgMaxModel(QObject *parent) : QAbstractTableModel(parent)
 {
@@ -33,7 +34,7 @@ int MinAvgMaxModel::rowCount(const QModelIndex& parent) const {
 
 QVariant MinAvgMaxModel::data(const QModelIndex& index, int role) const
 {
-    if (role != Qt::DisplayRole) {
+    if (role != Qt::DisplayRole && role != Qt::EditRole) {
         return {};
     }
     switch(index.column()) {
@@ -48,7 +49,10 @@ QVariant MinAvgMaxModel::data(const QModelIndex& index, int role) const
 
 QVariant MinAvgMaxModel::headerData(int section, Qt::Orientation orientation, int role) const
 {
-    if (orientation == Qt::Horizontal && role == Qt::DisplayRole) {
+    if (rowHeaders.empty())
+        return {};
+
+    if (orientation == Qt::Vertical && role == Qt::DisplayRole) {
         return rowHeaders.at(section);
     }
     return {};
@@ -80,17 +84,36 @@ void TripDepthModel::repopulateData()
     endResetModel();
 }
 
+bool MinAvgMaxModel::setData(const QModelIndex &index, const QVariant &value, int role)
+{
+    if (index.isValid() && role == Qt::EditRole) {
+        emit dataChanged(index, index);
+        return true;
+    }
+    return false;
+}
+
+Qt::ItemFlags MinAvgMaxModel::flags(const QModelIndex &index) const
+{
+    return QAbstractItemModel::flags(index) | Qt::ItemIsEditable;
+}
+
 TabDiveStatistics::TabDiveStatistics(QWidget *parent) : TabBase(parent)
 {
     auto layout = new QHBoxLayout();
     auto quickWidget = new QQuickWidget();
+    tripDepthModel = new TripDepthModel(this);
 
     quickWidget->setResizeMode(QQuickWidget::SizeRootObjectToView);
-
-    quickWidget->rootContext()->setContextProperty("columnsDepthStatistics", nullptr);
+    quickWidget->rootContext()->setContextProperty("tripDepthModel", tripDepthModel);
     quickWidget->setSource(QUrl::fromLocalFile(":/qml/statistics.qml"));
 
     layout->addWidget(quickWidget);
+    setLayout(layout);
+
+    QTableView *v = new QTableView();
+    v->setModel(tripDepthModel);
+    v->show();
 }
 
 TabDiveStatistics::~TabDiveStatistics()
@@ -103,4 +126,5 @@ void TabDiveStatistics::clear()
 
 void TabDiveStatistics::updateData()
 {
+    tripDepthModel->repopulateData();
 }
