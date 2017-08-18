@@ -45,8 +45,11 @@ public:
 
 TabDiveStatistics::TabDiveStatistics(QWidget *parent) : TabBase(parent)
 {
-    auto layout = new QGridLayout();
+    centralTab = new QTabWidget();
 
+    // Trip Statistics
+    auto tripLayout = new QGridLayout();
+    auto tripTab = new QWidget();
     tripSacScale = new QwtScaleWidget();
     tripDepthScale = new QwtScaleWidget();
     tripTempScale = new QwtScaleWidget();
@@ -79,17 +82,33 @@ TabDiveStatistics::TabDiveStatistics(QWidget *parent) : TabBase(parent)
     tripDepthPlot->enableAxis(QwtPlot::yLeft, false);
     tripDepthPlot->enableAxis(QwtPlot::xBottom, false);
 
-    layout->addWidget(tripSacScale, 0, 0);
-    layout->addWidget(tripSacPlot, 0, 1);
+    tripLayout->addWidget(tripSacScale, 0, 0);
+    tripLayout->addWidget(tripSacPlot, 0, 1);
+    tripLayout->addWidget(tripTempScale, 1, 0);
+    tripLayout->addWidget(tripTempPlot, 1, 1);
+    tripLayout->addWidget(tripDepthScale, 2, 0);
+    tripLayout->addWidget(tripDepthPlot, 2, 1);
+    tripLayout->addWidget(tripNames, 3, 1);
 
-    layout->addWidget(tripTempScale, 1, 0);
-    layout->addWidget(tripTempPlot, 1, 1);
+    tripTab->setLayout(tripLayout);
+    centralTab->addTab(tripTab, tr("Trips"));
 
-    layout->addWidget(tripDepthScale, 2, 0);
-    layout->addWidget(tripDepthPlot, 2, 1);
+    // Selected Dives
+    auto selectedLayout = new QGridLayout();
+    auto selectedTab = new QWidget();
+    selectedTab->setLayout(selectedLayout);
+    centralTab->addTab(selectedTab, "Selected Dives");
 
-    layout->addWidget(tripNames, 3, 1);
-    setLayout(layout);
+    // Yearly Statistics
+    auto yearlyLayout = new QGridLayout();
+    auto yearlyTab = new QWidget();
+    yearlyTab->setLayout(yearlyLayout);
+    centralTab->addTab(yearlyTab, "Yearly");
+
+
+    QHBoxLayout *centralLayout = new QHBoxLayout();
+    centralLayout->addWidget(centralTab);
+    setLayout(centralLayout);
 }
 
 TabDiveStatistics::~TabDiveStatistics()

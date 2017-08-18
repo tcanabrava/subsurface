@@ -8,6 +8,7 @@
 #include <QVariant>
 #include <QColor>
 #include <QVector>
+#include <QTabWidget>
 
 #include <qwt_interval.h>
 #include <qwt_interval_symbol.h>
@@ -56,6 +57,10 @@ public:
 	void updateData() override;
 	void clear() override;
 private:
+    QTabWidget *centralTab;
+    // Yearly
+
+    // Trips:
     QwtScaleWidget *tripSacScale;
     MinAvgMaxPlot *tripSacPlot;
     QwtScaleWidget *tripTempScale;
