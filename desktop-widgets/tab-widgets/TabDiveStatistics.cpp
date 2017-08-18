@@ -105,7 +105,6 @@ TabDiveStatistics::TabDiveStatistics(QWidget *parent) : TabBase(parent)
     yearlyTab->setLayout(yearlyLayout);
     centralTab->addTab(yearlyTab, "Yearly");
 
-
     QHBoxLayout *centralLayout = new QHBoxLayout();
     centralLayout->addWidget(centralTab);
     setLayout(centralLayout);
@@ -166,10 +165,11 @@ void TabDiveStatistics::updateData()
 MinAvgMaxPlot::MinAvgMaxPlot(QWidget *parent) : QwtPlot(parent), d_intervalCurve(nullptr), d_curve(nullptr), d_showHorizontalAxis(false)
 {
     QwtPlotCanvas *canvas = new QwtPlotCanvas();
-    canvas->setPalette( palette() );
-    canvas->setBorderRadius( 10 );
-
-    setCanvas( canvas );
+    canvas->setFrameShape(QFrame::Panel);
+    canvas->setFrameShadow(QFrame::Sunken);
+    canvas->setMidLineWidth(0);
+    canvas->setLineWidth(1);
+    setCanvas(canvas);
 }
 
 void MinAvgMaxPlot::insertCurve( const QString& title,
@@ -217,10 +217,8 @@ void MinAvgMaxPlot::insertErrorBars(
 
     d_intervalCurve->setSymbol( errorBar );
     d_intervalCurve->setRenderHint( QwtPlotItem::RenderAntialiased, false );
-
     d_intervalCurve->attach( this );
 }
-
 
 void MinAvgMaxPlot::setShowHorizontalAxis(bool showAxis)
 {
