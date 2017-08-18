@@ -82,14 +82,14 @@ TabDiveStatistics::TabDiveStatistics(QWidget *parent) : TabBase(parent)
     tripDepthPlot->enableAxis(QwtPlot::yLeft, false);
     tripDepthPlot->enableAxis(QwtPlot::xBottom, false);
 
-    tripLayout->addWidget(tripSacScale, 0, 0);
+    tripLayout->addWidget(tripSacScale, 0, 0, Qt::AlignLeft);
     tripLayout->addWidget(tripSacPlot, 0, 1);
-    tripLayout->addWidget(tripTempScale, 1, 0);
+    tripLayout->addWidget(tripTempScale, 1, 0, Qt::AlignLeft);
     tripLayout->addWidget(tripTempPlot, 1, 1);
-    tripLayout->addWidget(tripDepthScale, 2, 0);
+    tripLayout->addWidget(tripDepthScale, 2, 0, Qt::AlignLeft);
     tripLayout->addWidget(tripDepthPlot, 2, 1);
     tripLayout->addWidget(tripNames, 3, 1);
-
+    tripLayout->setSpacing(0);
     tripTab->setLayout(tripLayout);
     centralTab->addTab(tripTab, tr("Trips"));
 
