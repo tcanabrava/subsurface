@@ -14,13 +14,7 @@
 #include <QQmlContext>
 #include <QVector>
 
-struct MinAvgMax {
-    int min;
-    int avg;
-    int max;
-    QString info;
-};
-
+/*
 class Grid: public QwtPlotGrid
 {
 public:
@@ -39,6 +33,7 @@ public:
         QwtPlotGrid::updateScaleDiv( scaleDiv, yScaleDiv );
     }
 };
+*/
 
 class TripScaleDraw: public QwtScaleDraw
 {
@@ -55,7 +50,7 @@ public:
         setSpacing( 0 );
     }
 
-    virtual QwtText label( double value ) const
+    QwtText label( double value ) const override
     {
         int pos = value;
         if (tripNames.count() <= pos)
@@ -71,10 +66,42 @@ public:
 
 TabDiveStatistics::TabDiveStatistics(QWidget *parent) : TabBase(parent)
 {
-    auto layout = new QHBoxLayout();
-    tripDepthPlot = new TripDepthPlot(this);
+    auto layout = new QGridLayout();
 
-    layout->addWidget(tripDepthPlot);
+    tripSacScale = new QwtScaleWidget();
+    tripDepthScale = new QwtScaleWidget();
+    tripTempScale = new QwtScaleWidget();
+
+    tripSacScale->setSpacing(0);
+    tripDepthScale->setSpacing(0);
+    tripTempScale->setSpacing(0);
+
+    tripSacPlot = new MinAvgMaxPlot(this);
+    tripSacPlot->setObjectName("SacTripStatistics");
+    tripSacPlot->setAxisTitle( QwtPlot::yLeft, QString( "Sac" ));
+    tripSacPlot->enableAxis(QwtPlot::xBottom, false);
+    tripSacPlot->enableAxis(QwtPlot::yLeft, false);
+
+    tripTempPlot = new MinAvgMaxPlot(this);
+    tripTempPlot->setObjectName("Temp Trip statistics");
+    tripTempPlot->setAxisTitle( QwtPlot::yLeft, QString( "Temp" ));
+    tripTempPlot->enableAxis(QwtPlot::xBottom, false);
+    tripTempPlot->enableAxis(QwtPlot::yLeft, false);
+
+    tripDepthPlot = new MinAvgMaxPlot(this);
+    tripDepthPlot->setObjectName("DepthTripstatistics");
+    tripDepthPlot->setAxisTitle( QwtPlot::yLeft, QString( "Depth" ));
+    tripDepthPlot->enableAxis(QwtPlot::yLeft, false);
+
+    layout->addWidget(tripSacScale, 0, 0);
+    layout->addWidget(tripSacPlot, 0, 1);
+
+    layout->addWidget(tripTempScale, 1, 0);
+    layout->addWidget(tripTempPlot, 1, 1);
+
+    layout->addWidget(tripDepthScale, 2, 0);
+    layout->addWidget(tripDepthPlot, 2, 1);
+
     setLayout(layout);
 }
 
@@ -88,69 +115,31 @@ void TabDiveStatistics::clear()
 
 void TabDiveStatistics::updateData()
 {
-    tripDepthPlot->updateData();
-}
-
-TripDepthPlot::TripDepthPlot(QWidget *parent) : MinAvgMaxPlot(parent)
-{
-    setObjectName("DepthStatistics");
-    setTitle("Depths / trips");
-    setAxisTitle( QwtPlot::xBottom, "Trips" );
-    setAxisTitle( QwtPlot::yLeft, QString( "Depth / Meters" ));
-}
-
-void TripDepthPlot::updateData()
-{
-    QVector<MinAvgMax> values;
+    QVector<MinAvgMax> depthTripValues;
+    QVector<MinAvgMax> tempTripValues;
+    QVector<MinAvgMax> sacTripValues;
 
     if (stats_by_trip != NULL && stats_by_trip[0].is_trip == true) {
         for (int i = 1; stats_by_trip != NULL && stats_by_trip[i].is_trip; ++i) {
             auto stats = stats_by_trip[i];
-            auto min = stats.min_depth.mm;
-            auto mean = stats.avg_depth.mm;
-            auto max = stats.max_depth.mm;
-            values.push_back({min, mean, max, QString(stats.location)});
+            depthTripValues.push_back({stats.min_depth.mm/1000, stats.avg_depth.mm/1000, stats.max_depth.mm/1000, QString(stats.location)});
+            tempTripValues.push_back({get_temp_units(stats.min_temp, nullptr), 0, get_temp_units(stats.max_temp, nullptr), QString(stats.location)});
+            sacTripValues.push_back({stats.min_sac.mliter/1000, stats.avg_sac.mliter/1000, stats.max_sac.mliter/1000, QString(stats.location)});
         }
     }
 
-    qSort(values.begin(), values.end(), [](const MinAvgMax& a, const MinAvgMax& b) {
-        return a.max < b.max;
-    });
-
-    QVector<QPointF> averageData;
-    QVector<QwtIntervalSample> rangeData;
-    QStringList names;
-    QList<double> majorTicks;
-
-    for(int i = 0, end = values.count(); i < end; i++) {
-        auto value = values.at(i);
-        averageData.push_back(QPointF( double( i ), value.avg));
-        rangeData.push_back(QwtIntervalSample( double( i ), QwtInterval( value.min, value.max) ));
-        names.push_back(value.info);
-        majorTicks += i;
-    }
-
-    insertCurve     ("Average", averageData, Qt::black);
-    insertErrorBars( "Range", rangeData, Qt::blue );
-    if (names.count()) {
-        setAxisScaleDiv( QwtPlot::xBottom, QwtScaleDiv(0, names.count(), QList<double>(), QList<double>(), majorTicks));
-        setAxisScaleDraw( QwtPlot::xBottom, new TripScaleDraw(names) );
-    }
-    replot();
+    tripDepthPlot->updateData(depthTripValues);
+    tripTempPlot->updateData(tempTripValues);
+    tripSacPlot->updateData(sacTripValues);
 }
 
-MinAvgMaxPlot::MinAvgMaxPlot(QWidget *parent) : QwtPlot(parent), d_intervalCurve(nullptr), d_curve(nullptr)
+MinAvgMaxPlot::MinAvgMaxPlot(QWidget *parent) : QwtPlot(parent), d_intervalCurve(nullptr), d_curve(nullptr), d_showHorizontalAxis(false)
 {
     QwtPlotCanvas *canvas = new QwtPlotCanvas();
     canvas->setPalette( palette() );
     canvas->setBorderRadius( 10 );
 
-    insertLegend( new QwtLegend(), QwtPlot::RightLegend );
-
     setCanvas( canvas );
-
-    Grid* g = new Grid();
-    g->attach(this);
 }
 
 void MinAvgMaxPlot::insertCurve( const QString& title,
@@ -200,5 +189,36 @@ void MinAvgMaxPlot::insertErrorBars(
     d_intervalCurve->setRenderHint( QwtPlotItem::RenderAntialiased, false );
 
     d_intervalCurve->attach( this );
+}
+
+
+void MinAvgMaxPlot::setShowHorizontalAxis(bool showAxis)
+{
+    d_showHorizontalAxis = showAxis;
+}
+
+void MinAvgMaxPlot::updateData(const QVector<MinAvgMax>& values)
+{
+    QVector<QPointF> averageData;
+    QVector<QwtIntervalSample> rangeData;
+    QStringList names;
+    QList<double> majorTicks;
+
+    for(int i = 0, end = values.count(); i < end; i++) {
+        auto value = values.at(i);
+        averageData.push_back(QPointF( double( i ), value.avg));
+        rangeData.push_back(QwtIntervalSample( double( i ), QwtInterval( value.min, value.max) ));
+        names.push_back(value.info);
+        majorTicks += i;
+    }
+
+    insertCurve     ("Average", averageData, Qt::black);
+    insertErrorBars( "Range", rangeData, Qt::blue );
+    setAxisScaleDiv( QwtPlot::xBottom, QwtScaleDiv(0, names.count(), QList<double>(), QList<double>(), majorTicks));
+
+    if (d_showHorizontalAxis && names.count()) {
+        setAxisScaleDraw( QwtPlot::xBottom, new TripScaleDraw(names) );
+    }
+    replot();
 }
 

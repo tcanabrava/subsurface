@@ -20,29 +20,33 @@
 #include <qwt_samples.h>
 #include <qwt_symbol.h>
 #include <qwt_scale_draw.h>
+#include <qwt_scale_widget.h>
 
 class QwtPlotIntervalCurve;
 class QwtPlotCurve;
+
+struct MinAvgMax {
+    int min;
+    int avg;
+    int max;
+    QString info;
+};
 
 class MinAvgMaxPlot : public QwtPlot {
     Q_OBJECT
 public:
     MinAvgMaxPlot(QWidget *parent = 0);
-    virtual void updateData() = 0;
+    void updateData(const QVector<MinAvgMax>& data);
 
     void insertErrorBars(const QString &title, const QVector<QwtIntervalSample>& samples, const QColor &color );
     void insertCurve( const QString& title, const QVector<QPointF>& samples, const QColor &color );
 
+    /* call this function before calling updateData() */
+    void setShowHorizontalAxis(bool showAxis);
 private:
     QwtPlotIntervalCurve *d_intervalCurve;
     QwtPlotCurve *d_curve;
-};
-
-class TripDepthPlot : public MinAvgMaxPlot {
-    Q_OBJECT
-public:
-    TripDepthPlot(QWidget *parent = 0);
-    void updateData() override;
+    bool d_showHorizontalAxis;
 };
 
 class TabDiveStatistics : public TabBase {
@@ -53,7 +57,12 @@ public:
 	void updateData() override;
 	void clear() override;
 private:
-    TripDepthPlot *tripDepthPlot;
+    QwtScaleWidget *tripSacScale;
+    MinAvgMaxPlot *tripSacPlot;
+    QwtScaleWidget *tripTempScale;
+    MinAvgMaxPlot *tripTempPlot;
+    QwtScaleWidget *tripDepthScale;
+    MinAvgMaxPlot *tripDepthPlot;
 };
 
 #endif
