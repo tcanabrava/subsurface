@@ -57,6 +57,10 @@ TabDiveStatistics::TabDiveStatistics(QWidget *parent) : TabBase(parent)
     tripTempScale->setSpacing(0);
     tripNames->setSpacing(0);
 
+    tripSacScale->setTitle("Sac");
+    tripDepthScale->setTitle("Depth");
+    tripTempScale->setTitle("Temperature");
+
     tripSacPlot = new MinAvgMaxPlot(this);
     tripSacPlot->setObjectName("SacTripStatistics");
     tripSacPlot->setAxisTitle( QwtPlot::yLeft, QString( "Sac" ));
