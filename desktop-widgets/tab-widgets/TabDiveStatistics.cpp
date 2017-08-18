@@ -31,8 +31,7 @@ public:
         setMinorPen( Qt::gray, 0, Qt::DotLine );
     }
 
-    virtual void updateScaleDiv( const QwtScaleDiv &xScaleDiv,
-        const QwtScaleDiv &yScaleDiv )
+    void updateScaleDiv( const QwtScaleDiv &xScaleDiv, const QwtScaleDiv &yScaleDiv ) override
     {
         QwtScaleDiv scaleDiv( xScaleDiv.lowerBound(), xScaleDiv.upperBound() );
         scaleDiv.setTicks( QwtScaleDiv::MinorTick, xScaleDiv.ticks( QwtScaleDiv::MinorTick ) );
@@ -70,7 +69,37 @@ public:
     QStringList tripNames;
 };
 
-void DepthQwtPlot::updateData()
+TabDiveStatistics::TabDiveStatistics(QWidget *parent) : TabBase(parent)
+{
+    auto layout = new QHBoxLayout();
+    tripDepthPlot = new TripDepthPlot(this);
+
+    layout->addWidget(tripDepthPlot);
+    setLayout(layout);
+}
+
+TabDiveStatistics::~TabDiveStatistics()
+{
+}
+
+void TabDiveStatistics::clear()
+{
+}
+
+void TabDiveStatistics::updateData()
+{
+    tripDepthPlot->updateData();
+}
+
+TripDepthPlot::TripDepthPlot(QWidget *parent) : MinAvgMaxPlot(parent)
+{
+    setObjectName("DepthStatistics");
+    setTitle("Depths / trips");
+    setAxisTitle( QwtPlot::xBottom, "Trips" );
+    setAxisTitle( QwtPlot::yLeft, QString( "Depth / Meters" ));
+}
+
+void TripDepthPlot::updateData()
 {
     QVector<MinAvgMax> values;
 
@@ -110,35 +139,8 @@ void DepthQwtPlot::updateData()
     replot();
 }
 
-TabDiveStatistics::TabDiveStatistics(QWidget *parent) : TabBase(parent)
+MinAvgMaxPlot::MinAvgMaxPlot(QWidget *parent) : QwtPlot(parent), d_intervalCurve(nullptr), d_curve(nullptr)
 {
-    auto layout = new QHBoxLayout();
-    tripDepthPlot = new DepthQwtPlot();
-
-    layout->addWidget(tripDepthPlot);
-    setLayout(layout);
-}
-
-TabDiveStatistics::~TabDiveStatistics()
-{
-}
-
-void TabDiveStatistics::clear()
-{
-}
-
-void TabDiveStatistics::updateData()
-{
-    tripDepthPlot->updateData();
-}
-
-DepthQwtPlot::DepthQwtPlot() : d_intervalCurve(nullptr), d_curve(nullptr)
-{
-    setObjectName("DepthStatistics");
-    setTitle("Depths / trips");
-    setAxisTitle( QwtPlot::xBottom, "Trips" );
-    setAxisTitle( QwtPlot::yLeft, QString( "Depth / Meters" ));
-
     QwtPlotCanvas *canvas = new QwtPlotCanvas();
     canvas->setPalette( palette() );
     canvas->setBorderRadius( 10 );
@@ -151,7 +153,7 @@ DepthQwtPlot::DepthQwtPlot() : d_intervalCurve(nullptr), d_curve(nullptr)
     g->attach(this);
 }
 
-void DepthQwtPlot::insertCurve( const QString& title,
+void MinAvgMaxPlot::insertCurve( const QString& title,
     const QVector<QPointF>& samples, const QColor &color )
 {
     delete (d_curve);
@@ -169,7 +171,7 @@ void DepthQwtPlot::insertCurve( const QString& title,
     d_curve->attach( this );
 }
 
-void DepthQwtPlot::insertErrorBars(
+void MinAvgMaxPlot::insertErrorBars(
     const QString &title,
     const QVector<QwtIntervalSample>& samples,
     const QColor &color )
@@ -189,11 +191,11 @@ void DepthQwtPlot::insertErrorBars(
 
     QColor c( d_intervalCurve->brush().color().rgba() ); // skip alpha
 
-    QwtIntervalSymbol *errorBar =
-        new QwtIntervalSymbol( QwtIntervalSymbol::Box );
+    auto errorBar = new QwtIntervalSymbol( QwtIntervalSymbol::Box );
     errorBar->setWidth( 12 ); // should be something even
     errorBar->setPen(c);
     errorBar->setBrush(c);
+
     d_intervalCurve->setSymbol( errorBar );
     d_intervalCurve->setRenderHint( QwtPlotItem::RenderAntialiased, false );
 

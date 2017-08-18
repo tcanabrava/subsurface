@@ -24,11 +24,11 @@
 class QwtPlotIntervalCurve;
 class QwtPlotCurve;
 
-class DepthQwtPlot : public QwtPlot {
+class MinAvgMaxPlot : public QwtPlot {
     Q_OBJECT
 public:
-    DepthQwtPlot();
-    void updateData();
+    MinAvgMaxPlot(QWidget *parent = 0);
+    virtual void updateData() = 0;
 
     void insertErrorBars(const QString &title, const QVector<QwtIntervalSample>& samples, const QColor &color );
     void insertCurve( const QString& title, const QVector<QPointF>& samples, const QColor &color );
@@ -36,6 +36,13 @@ public:
 private:
     QwtPlotIntervalCurve *d_intervalCurve;
     QwtPlotCurve *d_curve;
+};
+
+class TripDepthPlot : public MinAvgMaxPlot {
+    Q_OBJECT
+public:
+    TripDepthPlot(QWidget *parent = 0);
+    void updateData() override;
 };
 
 class TabDiveStatistics : public TabBase {
@@ -46,7 +53,7 @@ public:
 	void updateData() override;
 	void clear() override;
 private:
-    DepthQwtPlot *tripDepthPlot;
+    TripDepthPlot *tripDepthPlot;
 };
 
 #endif
