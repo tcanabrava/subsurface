@@ -29,7 +29,6 @@ struct MinAvgMax {
     int min;
     int avg;
     int max;
-    QString info;
 };
 
 class MinAvgMaxPlot : public QwtPlot {
@@ -63,6 +62,7 @@ private:
     MinAvgMaxPlot *tripTempPlot;
     QwtScaleWidget *tripDepthScale;
     MinAvgMaxPlot *tripDepthPlot;
+    QwtScaleWidget *tripNames;
 };
 
 #endif
